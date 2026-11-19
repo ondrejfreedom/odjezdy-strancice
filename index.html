@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#060d1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Strančice → Praha</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  * { box-sizing: border-box; -webkit-box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #060d1a; color: #e6eefc; height: 100%; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    overscroll-behavior-y: contain;
+  }
+  .num { font-variant-numeric: tabular-nums; -webkit-font-feature-settings: "tnum"; font-feature-settings: "tnum"; }
+
+  #wrap { padding: 3vw 3.5vw 6vw; max-width: 900px; margin: 0 auto; }
+
+  /* hlavička */
+  #head { overflow: hidden; padding: 1vw 1vw 3vw; }
+  #clock { float: left; font-size: 13vw; font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: #fff; }
+  #clock .sec { font-size: 6vw; color: #6f8bb8; font-weight: 600; margin-left: 0.5vw; }
+  #headR { float: right; text-align: right; padding-top: 0.6vw; }
+  #route { font-size: 4.4vw; font-weight: 700; color: #9fc2ff; }
+  #status { font-size: 3.3vw; color: #6f8bb8; margin-top: 1.4vw; }
+  #status .dot { display: inline-block; width: 2.2vw; height: 2.2vw; border-radius: 50%; background: #3ddc97; margin-left: 1.2vw; vertical-align: -0.1vw; }
+  #status.stale { color: #ff8a8a; }
+  #status.stale .dot { background: #ff6b6b; }
+  #status.loading .dot { background: #5aa0ff; }
+
+  /* pull-to-refresh */
+  #ptr { height: 0; overflow: hidden; text-align: center; color: #9fc2ff; font-size: 4vw; line-height: 12vw; }
+
+  /* hlavní vlak */
+  #hero {
+    border-radius: 5vw; padding: 4.5vw 5vw 5vw;
+    background: #0e2347;
+    background: -webkit-linear-gradient(top, #13305f, #0b1c3a);
+    background: linear-gradient(180deg, #13305f, #0b1c3a);
+    border: 0.4vw solid #1f4685;
+    box-shadow: 0 2vw 6vw rgba(0,0,0,0.45);
+  }
+  #hero.canceled { border-color: #ff6b6b; }
+  .h-top { font-size: 4.6vw; color: #c9dafc; line-height: 1.35; }
+  .line { display: inline-block; background: #1d63d8; color: #fff; font-weight: 800; border-radius: 1.6vw; padding: 0.3vw 2vw; margin-right: 1.5vw; }
+  .tnum { color: #8fb0e3; }
+  .dest { font-weight: 700; color: #fff; }
+  .h-route { font-size: 5.6vw; font-weight: 700; color: #fff; margin-top: 1.5vw; }
+  .arr { text-align: center; font-size: 4.6vw; color: #9fb6dc; margin-top: 3.5vw; }
+  .arr b { font-size: 7.5vw; font-weight: 800; color: #fff; margin-left: 2vw; vertical-align: -0.5vw; }
+  .badge { display: inline-block; font-size: 3.4vw; font-weight: 700; border-radius: 1.6vw; padding: 0.5vw 2vw; margin-top: 1.5vw; }
+  .b-origin { background: #123f2f; color: #6ff0b9; border: 0.3vw solid #2a8a63; }
+  .b-cancel { background: #4a1420; color: #ffb3b3; border: 0.3vw solid #ff6b6b; }
+
+  #cd { text-align: center; margin: 2vw 0 1vw; line-height: 1; }
+  #cd .big { font-size: 30vw; font-weight: 800; letter-spacing: -0.03em; color: #fff; }
+  #cd .unit { font-size: 7vw; font-weight: 700; color: #8fb0e3; margin-left: 1.5vw; }
+  #cd .lbl { font-size: 4vw; color: #8fb0e3; display: block; margin-bottom: 1vw; letter-spacing: 0.08em; text-transform: uppercase; }
+  #cd.now .big { color: #ffc857; font-size: 20vw; }
+  #cd.cancel .big { color: #ff6b6b; font-size: 18vw; }
+
+  .tri { display: table; width: 100%; table-layout: fixed; margin-top: 3vw; border-collapse: separate; border-spacing: 1.6vw 0; }
+  .tri .c { display: table-cell; text-align: center; background: rgba(4,12,28,0.55); border-radius: 3vw; padding: 2.6vw 1vw 3vw; }
+  .tri label { display: block; font-size: 3.3vw; color: #7f9bc8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1.2vw; }
+  .tri b { font-size: 8.6vw; font-weight: 800; line-height: 1; color: #fff; }
+  .tri .sched b { color: #b7c8e6; font-weight: 700; }
+
+  .ok   { color: #3ddc97 !important; }
+  .warn { color: #ffc857 !important; }
+  .bad  { color: #ff6b6b !important; }
+  .unk  { color: #8fa3c4 !important; }
+
+  #walk { text-align: center; font-size: 5vw; font-weight: 700; margin-top: 3.5vw; }
+  .where { font-size: 3.4vw; color: #7f9bc8; margin-top: 3vw; text-align: center; }
+  .where b { color: #b7c8e6; font-weight: 600; }
+
+  /* další vlaky */
+  #listT { font-size: 3.4vw; color: #6f8bb8; text-transform: uppercase; letter-spacing: 0.08em; margin: 5vw 1.5vw 2vw; }
+  .row { background: #0b1a33; border: 0.3vw solid #16305a; border-radius: 3.5vw; padding: 2.8vw 3.5vw; margin-bottom: 2.2vw; }
+  .row.canceled { opacity: 0.75; border-color: #6b2a35; }
+  .rt { display: table; width: 100%; table-layout: fixed; }
+  .rt > div { display: table-cell; vertical-align: middle; }
+  .r-s { width: 22%; font-size: 6vw; font-weight: 700; color: #b7c8e6; }
+  .r-d { width: 18%; font-size: 5.6vw; font-weight: 800; text-align: center; }
+  .r-p { width: 26%; font-size: 7.5vw; font-weight: 800; color: #fff; text-align: center; }
+  .r-in { width: 34%; font-size: 5.2vw; font-weight: 700; color: #9fc2ff; text-align: right; }
+  .r-one { width: 66%; font-size: 7.5vw; font-weight: 800; color: #fff; }
+  .r-one .sm { font-size: 3.6vw; font-weight: 700; margin-left: 2.5vw; vertical-align: 0.6vw; }
+  .r-route { font-size: 3.8vw; color: #b7c8e6; margin-top: 1.4vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r-route b { color: #fff; }
+  .r-sub { font-size: 3.1vw; color: #6f8bb8; margin-top: 0.8vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .o { color: #6ff0b9 !important; font-weight: 700; }
+  .r-sub .x { color: #ff8a8a; font-weight: 700; }
+
+  #msg { text-align: center; color: #9fc2ff; font-size: 5vw; padding: 12vw 4vw; }
+  #msg small { display: block; font-size: 3.5vw; color: #6f8bb8; margin-top: 3vw; }
+  #info { margin-top: 4vw; }
+  .itx { background: #2a2410; border: 0.3vw solid #6b5a1e; color: #f3dd9b; border-radius: 3vw; font-size: 3.3vw; padding: 2.5vw 3vw; margin-bottom: 2vw; line-height: 1.35; }
+
+  #foot { text-align: center; font-size: 3vw; color: #42587e; margin-top: 5vw; }
+  .fbtn { color: #6f8bb8; text-decoration: none; padding: 2vw 3vw; font-size: 3.4vw; border: 0.3vw solid #1f3a66; border-radius: 2vw; display: inline-block; margin: 2.5vw 1vw 0; }
+
+  /* nastavení */
+  #set { display: none; position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(3,8,18,0.96); overflow: auto; z-index: 10; padding: 6vw; }
+  #set h2 { font-size: 6vw; margin-bottom: 4vw; color: #fff; }
+  #set label { display: block; font-size: 3.8vw; color: #9fc2ff; margin: 4vw 0 1.5vw; }
+  #set input { width: 100%; font-size: 4.4vw; padding: 2.5vw; border-radius: 2vw; border: 0.3vw solid #2a4a80; background: #0b1a33; color: #fff; -webkit-user-select: text; user-select: text; }
+  #set p { font-size: 3.3vw; color: #6f8bb8; margin-top: 1.2vw; line-height: 1.4; }
+  #set a { color: #9fc2ff; }
+  .btn { text-decoration: none; display: inline-block; margin: 6vw 2vw 0 0; font-size: 4.4vw; font-weight: 700; padding: 3vw 6vw; border-radius: 2.5vw; border: 0; background: #1d63d8; color: #fff; }
+  .btn.sec { background: #1a2a45; color: #c9dafc; }
+
+  /* širší obrazovky (tablet/PC) – ať to není obří */
+  @media (min-width: 700px) {
+    #wrap { padding: 20px 24px 40px; }
+    #clock { font-size: 84px; } #clock .sec { font-size: 40px; }
+    #route { font-size: 28px; } #status { font-size: 20px; }
+    #hero { border-radius: 30px; padding: 28px 32px; }
+    .h-top { font-size: 28px; } .badge { font-size: 20px; }
+    #cd .big { font-size: 190px; } #cd .unit { font-size: 44px; } #cd .lbl { font-size: 24px; }
+    #cd.now .big { font-size: 130px; } #cd.cancel .big { font-size: 110px; }
+    .tri b { font-size: 64px; } .tri label { font-size: 20px; }
+    #walk { font-size: 32px; } .where { font-size: 21px; }
+    #listT { font-size: 20px; }
+    .row { padding: 16px 22px; border-radius: 20px; }
+    .r-s { font-size: 36px; } .r-d { font-size: 34px; } .r-p { font-size: 46px; } .r-in { font-size: 32px; }
+    .r-sub { font-size: 19px; } .r-route { font-size: 22px; } .r-one { font-size: 46px; } .r-one .sm { font-size: 22px; }
+    .h-route { font-size: 34px; } .arr { font-size: 28px; } .arr b { font-size: 46px; } .itx { font-size: 19px; } #foot, .fbtn { font-size: 18px; }
+    #set h2 { font-size: 34px; } #set label { font-size: 22px; } #set input { font-size: 24px; } #set p { font-size: 18px; } .btn { font-size: 24px; }
+    #msg { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="head">
+    <div id="clock" class="num">--:--</div>
+    <div id="headR">
+      <div id="route">Strančice → Praha</div>
+      <div id="status" class="loading">načítám<span class="dot"></span></div>
+    </div>
+  </div>
+  <div id="ptr">↓ Pusť pro obnovení</div>
+  <div id="main"><div id="msg">Načítám odjezdy…</div></div>
+  <div id="info"></div>
+  <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
+</div>
+
+<div id="set">
+  <h2>Nastavení</h2>
+  <label for="sToken">Golemio API klíč (X-Access-Token)</label>
+  <input id="sToken" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="na Vercelu s GOLEMIO_TOKEN nech prázdné">
+  <p>Klíč zdarma: <a href="https://api.golemio.cz/api-keys/" target="_blank">api.golemio.cz/api-keys</a>. Ukládá se jen v tomto prohlížeči.</p>
+  <label for="sStation">Stanice (název v PID)</label>
+  <input id="sStation" type="text" placeholder="Strančice">
+  <label for="sWalk">Cesta na nádraží (minuty, 0 = nezobrazovat)</label>
+  <input id="sWalk" type="number" min="0" max="60" placeholder="0">
+  <p>Když je vyplněno, ukáže se „Vyraž za X min“.</p>
+  <label for="sCount">Počet dalších vlaků v seznamu</label>
+  <input id="sCount" type="number" min="1" max="12" placeholder="5">
+  <a href="#" class="btn" id="sSave">Uložit</a><a href="#" class="btn sec" id="sClose">Zavřít</a>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- konfigurace ----------
+  var GOLEMIO = 'https://api.golemio.cz/v2/pid/departureboards';
+  var PROXY = 'api/odjezdy';
+  var GOLEMIO_TRIP = 'https://api.golemio.cz/v2/gtfs/trips/';          // Vercel funkce (volitelné)
+  var MIN_BEFORE = 10;                // ať máme i zpožděné vlaky, jejichž pravidelný čas už minul
+  var MIN_AFTER = 360;                // 6 h dopředu
+  var LIMIT = 40;
+
+  // Směr: co jede do Prahy a co na jih
+  var RE_PRAHA = /Praha|Lysá|Kolín|Kralupy|Roztoky|Neratovice|Mělník|Beroun|Nymburk|Čelákovice|Úvaly|Říčany/i;
+  var RE_JIH = /Beneš|Čerčany|Tábor|Votice|Olbramovice|Budějovic|Strančice|Senohraby|Mrač|Pyšely|Ondřejov|Sázava|Vlašim|Postupice|Bystřice|Heřmaničky|Sudoměřice|Veselí|Soběslav|Jílové/i;
+
+  // ---------- nastavení ----------
+  var DEFAULT_TOKEN = '';
+  var S = { token: DEFAULT_TOKEN, station: 'Strančice', walk: 0, count: 5 };
+  function loadSettings() {
+    try {
+      var raw = window.localStorage.getItem('odjezdy.settings');
+      if (raw) { var o = JSON.parse(raw); for (var k in o) { if (o.hasOwnProperty(k)) S[k] = o[k]; } }
+    } catch (e) {}
+    if (!S.token) S.token = DEFAULT_TOKEN;
+    // token i přes URL: index.html?token=XXX (jednorázově se uloží)
+    var m = /[?&]token=([^&#]+)/.exec(location.search);
+    if (m) { S.token = decodeURIComponent(m[1]); saveSettings(); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  }
+  function saveSettings() { try { window.localStorage.setItem('odjezdy.settings', JSON.stringify(S)); } catch (e) {} }
+
+  // ---------- pomocné ----------
+  function $(id) { return document.getElementById(id); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hm(ms) { var d = new Date(ms); return d.getHours() + ':' + pad(d.getMinutes()); }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  // robustní parsování ISO data s offsetem (staré prohlížeče to neumí)
+  function parseISO(s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d)(?:\.\d+)?)?(Z|([+-])(\d\d):?(\d\d))?$/.exec(s);
+    if (!m) { var t = Date.parse(s); return isNaN(t) ? null : t; }
+    var utc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+    if (!m[7]) { return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)).getTime(); }
+    if (m[7] === 'Z') return utc;
+    var off = (+m[9] * 60 + +m[10]) * 60000;
+    return m[8] === '+' ? utc - off : utc + off;
+  }
+
+  // poloha: technické názvy úseků (např. „VÚSC 0210/0110 05“) nahradíme textem
+  function cleanStop(n) {
+    if (!n) return '';
+    if (/VÚSC|\d{3,}\s*\/\s*\d{3,}/.test(n)) return 'na trati';
+    return n;
+  }
+
+  // ---------- stav ----------
+  var trains = [];          // zpracované odjezdy směr Praha
+  var infotexts = [];
+  var lastOk = 0;           // čas posledního úspěšného načtení
+  var lastErr = '';
+  var loading = false;
+  var timer = null;
+  var nextFetchAt = 0;
+  var watchUntil = 0;       // kdy odjíždí aktuálně první vlak → pak hned obnovit
+
+  // ---------- načítání dat ----------
+  function buildQuery() {
+    return 'names=' + encodeURIComponent(S.station || 'Strančice') +
+      '&minutesBefore=' + MIN_BEFORE + '&minutesAfter=' + MIN_AFTER +
+      '&limit=' + LIMIT + '&mode=departures';
+  }
+
+  function xhrGet(url, headers, cb) {
+    var x = new XMLHttpRequest();
+    var done = false;
+    x.open('GET', url, true);
+    for (var h in headers) { if (headers.hasOwnProperty(h)) x.setRequestHeader(h, headers[h]); }
+    x.timeout = 15000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4 || done) return;
+      done = true;
+      cb(x.status, x.responseText);
+    };
+    x.ontimeout = function () { if (!done) { done = true; cb(0, 'timeout'); } };
+    x.send();
+  }
+
+  function fetchData() {
+    if (loading) return;
+    loading = true;
+    setStatus();
+    var q = buildQuery();
+    if (S.token) {
+      xhrGet(GOLEMIO + '?' + q, { 'X-Access-Token': S.token, 'Accept': 'application/json' }, onResponse);
+    } else {
+      xhrGet(PROXY + '?' + q, { 'Accept': 'application/json' }, function (st, txt) {
+        if (st === 404 || st === 0 || (txt && txt.charAt(0) === '<')) {
+          loading = false;
+          lastErr = 'notoken';
+          render(); setStatus(); schedule(60000);
+          return;
+        }
+        onResponse(st, txt);
+      });
+    }
+  }
+
+  function onResponse(status, text) {
+    loading = false;
+    if (status !== 200) {
+      lastErr = status === 401 || status === 403 ? 'Neplatný API klíč (' + status + ')' :
+                status === 0 ? 'Bez připojení / síť nedostupná' : 'Chyba serveru ' + status;
+      setStatus(); render(); schedule(30000);
+      return;
+    }
+    var data;
+    try { data = JSON.parse(text); } catch (e) { lastErr = 'Nečitelná odpověď'; setStatus(); schedule(30000); return; }
+    lastErr = '';
+    lastOk = Date.now();
+    process(data);
+    render();
+    setStatus();
+    schedule(intervalFor());
+  }
+
+  function process(data) {
+    var deps = (data && data.departures) || [];
+    // naučíme se "direction" vlaků, které jasně jedou do Prahy
+    var prahaDir = null;
+    var i, d;
+    for (i = 0; i < deps.length; i++) {
+      d = deps[i];
+      if (d.route && d.route.type !== 2 && d.route.type !== '2') continue;
+      var hs = (d.trip && d.trip.headsign) || '';
+      if (RE_PRAHA.test(hs) && d.trip && d.trip.direction != null) { prahaDir = d.trip.direction; break; }
+    }
+    var out = [];
+    var seen = {};
+    for (i = 0; i < deps.length; i++) {
+      d = deps[i];
+      if (!d.route || (d.route.type !== 2 && d.route.type !== '2')) continue; // jen vlaky
+      var head = (d.trip && d.trip.headsign) || '';
+      var toPraha;
+      if (RE_PRAHA.test(head)) toPraha = true;
+      else if (RE_JIH.test(head)) toPraha = false;
+      else toPraha = prahaDir == null ? true : (d.trip.direction === prahaDir);
+      if (!toPraha) continue;
+
+      var sched = parseISO(d.departure_timestamp && d.departure_timestamp.scheduled);
+      var pred = parseISO(d.departure_timestamp && d.departure_timestamp.predicted) || sched;
+      if (!sched) continue;
+      var key = (d.trip && d.trip.id) || (head + sched);
+      if (seen[key]) continue;
+      seen[key] = 1;
+
+      var dl = d.delay || {};
+      var delayKnown = !!dl.is_available;
+      var delaySec = delayKnown ? (dl.seconds != null ? dl.seconds : (dl.minutes || 0) * 60) : 0;
+      // když API dá predicted bez zpoždění, dopočítáme
+      if (delayKnown && pred === sched && delaySec) pred = sched + delaySec * 1000;
+
+      out.push({
+        id: (d.trip && d.trip.id) || '',
+        line: (d.route && d.route.short_name) || '',
+        num: (d.trip && d.trip.short_name) || '',
+        head: head,
+        sched: sched,
+        pred: pred,
+        predShow: delayKnown ? sched + (dl.minutes != null ? dl.minutes : Math.floor(delaySec / 60)) * 60000 : pred,
+        delayKnown: delayKnown,
+        delayMin: delayKnown ? (dl.minutes != null ? dl.minutes : Math.floor(delaySec / 60)) : null,
+        origin: !(d.arrival_timestamp && d.arrival_timestamp.scheduled),
+        lastStop: cleanStop(d.last_stop && d.last_stop.name),
+        atStop: !!(d.trip && d.trip.is_at_stop),
+        canceled: !!(d.trip && d.trip.is_canceled),
+        platform: (d.stop && d.stop.platform_code) || ''
+      });
+    }
+    out.sort(function (a, b) { return a.pred - b.pred; });
+    trains = out;
+    infotexts = (data && data.infotexts) || [];
+    var up = upcoming(Date.now());
+    watchUntil = up.length ? (up[0].canceled ? up[0].sched + 60000 : up[0].pred) + 2000 : 0;
+  }
+
+  // vlaky, jejichž (pravidelný čas + zpoždění) ještě nenastal
+  function upcoming(now) {
+    var r = [];
+    for (var i = 0; i < trains.length; i++) {
+      var t = trains[i];
+      var limit = t.canceled ? t.sched + 60000 : t.pred;
+      if (limit > now) r.push(t);
+    }
+    return r;
+  }
+
+  // ---------- plánování obnovy ----------
+  function intervalFor() {
+    var up = upcoming(Date.now());
+    var first = null;
+    for (var i = 0; i < up.length; i++) { if (!up[i].canceled) { first = up[i]; break; } }
+    if (!first) return 5 * 60000;
+    var mins = (first.pred - Date.now()) / 60000;
+    if (mins >= 30) return 5 * 60000;
+    if (mins >= 10) return 60000;
+    return 30000;
+  }
+  function schedule(ms) {
+    if (timer) clearTimeout(timer);
+    nextFetchAt = Date.now() + ms;
+    timer = setTimeout(fetchData, ms);
+  }
+  function refreshNow() { if (timer) clearTimeout(timer); fetchData(); }
+
+  // ---------- detail spoje: výchozí stanice a příjezd do Prahy ----------
+  var tripCache = {};   // id -> {ok, origin, dest, here, arrOff} | {pending} | {fail: čas}
+  var tripQueue = [];
+  var tripBusy = false;
+  function shortStop(n) {
+    return String(n || '').replace(/hlavní nádraží/, 'hl. n.').replace(/Masarykovo nádraží/, 'Masarykovo n.').replace(/ u Prahy$/, '');
+  }
+  function gtfsSec(t) { var p = String(t || '0:0:0').split(':'); return (+p[0]) * 3600 + (+p[1]) * 60 + (+(p[2] || 0)); }
+  function stopName(st) { var x = st && st.stop; x = x && (x.properties || x); return (x && x.stop_name) || ''; }
+  function parseTrip(j) {
+    var st = (j && j.stop_times) || [];
+    if (!st.length) return null;
+    var me = (S.station || 'Strančice');
+    var k = -1, i;
+    for (i = 0; i < st.length; i++) { if (stopName(st[i]) === me) { k = i; break; } }
+    if (k < 0) return null;
+    var di = -1;
+    for (i = k + 1; i < st.length; i++) { if (/^Praha hlavní nádraží$/.test(stopName(st[i]))) { di = i; break; } }
+    if (di < 0) di = st.length - 1;
+    return {
+      ok: true,
+      origin: shortStop(stopName(st[0])),
+      here: k === 0,
+      dest: shortStop(stopName(st[di])),
+      arrOff: gtfsSec(st[di].arrival_time) - gtfsSec(st[k].departure_time)
+    };
+  }
+  function wantTrips(list) {
+    var now = Date.now();
+    for (var i = 0; i < list.length; i++) {
+      var id = list[i].id, c = tripCache[id];
+      if (!id) continue;
+      if (!c || (c.fail && now - c.fail > 5 * 60000)) { tripCache[id] = { pending: true }; tripQueue.push(id); }
+    }
+    pumpTrips();
+  }
+  function pumpTrips() {
+    if (tripBusy || !tripQueue.length) return;
+    tripBusy = true;
+    var id = tripQueue.shift();
+    var url, hd;
+    if (S.token) { url = GOLEMIO_TRIP + encodeURIComponent(id) + '?includeStopTimes=true&includeStops=true'; hd = { 'X-Access-Token': S.token }; }
+    else { url = PROXY + '?trip=' + encodeURIComponent(id); hd = {}; }
+    xhrGet(url, hd, function (st, txt) {
+      tripBusy = false;
+      var info = null;
+      if (st === 200) { try { info = parseTrip(JSON.parse(txt)); } catch (e) {} }
+      tripCache[id] = info || { fail: Date.now() };
+      render();
+      pumpTrips();
+    });
+  }
+  function tinfo(t) { var c = tripCache[t.id]; return c && c.ok ? c : null; }
+  function routeHtml(t) {
+    var c = tinfo(t);
+    if (!c) return t.origin ? '<span class="o">' + esc(S.station) + '</span> → ' + esc(t.head) : '→ ' + esc(t.head);
+    var here = c.here || t.origin;
+    return '<span class="' + (here ? 'o' : '') + '">' + esc(c.origin) + '</span> → ' + esc(c.dest);
+  }
+  // příjezd do cíle: pravidelně + aktuální zpoždění (bez započítání náskoku)
+  function arrival(t) {
+    var c = tinfo(t);
+    if (!c || t.canceled) return null;
+    var add = t.delayKnown && t.delayMin > 0 ? t.delayMin : 0;
+    return { dest: c.dest, time: hm(t.sched + c.arrOff * 1000 + add * 60000), cls: add > 0 ? 'warn' : '' };
+  }
+
+  // ---------- vykreslení ----------
+  function delayClass(t) {
+    if (t.canceled) return 'bad';
+    if (!t.delayKnown) return 'unk';
+    if (t.delayMin <= 0) return 'ok';
+    if (t.delayMin < 5) return 'warn';
+    return 'bad';
+  }
+  function delayText(t) {
+    if (t.canceled) return '×';
+    if (!t.delayKnown) return t.origin ? '0' : '–';
+    if (t.delayMin === 0) return '0';
+    return (t.delayMin > 0 ? '+' : '−') + Math.abs(t.delayMin);
+  }
+  function whereText(t) {
+    if (t.canceled) return 'Vlak je odřeknutý';
+    if (t.origin && !t.delayKnown) return 'Výchozí ze Strančic';
+    if (!t.delayKnown) return 'Zatím bez online polohy (jízdní řád)';
+    if (!t.lastStop) return 'Poloha neznámá';
+    return (t.atStop ? 'Stojí: ' : 'Naposledy: ') + t.lastStop;
+  }
+
+  function countdown(ms) {
+    var s = Math.floor(ms / 1000);
+    if (s < 30) return { cls: 'now', big: 'odjíždí', unit: '' };
+    var m = Math.floor(s / 60);
+    if (m >= 60) return { cls: '', big: Math.floor(m / 60) + ':' + pad(m % 60), unit: 'h' };
+    if (m < 10) return { cls: '', big: m + ':' + pad(s % 60), unit: 'min' };
+    return { cls: '', big: String(m), unit: 'min' };
+  }
+
+  function render() {
+    var now = Date.now();
+    var main = $('main');
+    if (lastErr === 'notoken' && !trains.length) {
+      main.innerHTML = '<div id="msg">Chybí API klíč Golemio<small>Klepni na „Nastavení“ dole a vlož klíč (zdarma na api.golemio.cz), nebo nasaď na Vercel s proměnnou GOLEMIO_TOKEN.</small></div>';
+      return;
+    }
+    if (!lastOk && !trains.length) {
+      main.innerHTML = '<div id="msg">' + (lastErr ? esc(lastErr) : 'Načítám odjezdy…') + '</div>';
+      return;
+    }
+    var up = upcoming(now);
+    if (!up.length) {
+      main.innerHTML = '<div id="msg">Žádný vlak do Prahy v příštích ' + (MIN_AFTER / 60) + ' hodinách<small>' + esc(S.station) + ' → Praha</small></div>';
+      renderInfo();
+      return;
+    }
+    // hlavní = první nezrušený; zrušené před ním ukážeme v seznamu
+    var hi = 0;
+    while (hi < up.length && up[hi].canceled) hi++;
+    if (hi >= up.length) hi = 0;
+    var t = up[hi];
+    var rest = [];
+    for (var i = 0; i < up.length; i++) { if (i !== hi) rest.push(up[i]); }
+    rest = rest.slice(0, Math.max(1, +S.count || 5));
+
+    var dc = delayClass(t);
+    var cd = t.canceled ? { cls: 'cancel', big: 'ZRUŠEN', unit: '' } : countdown(t.pred - now);
+    var h = '';
+    h += '<div id="hero" class="' + (t.canceled ? 'canceled' : '') + '">';
+    h += '<div class="h-top">' + (t.line ? '<span class="line">' + esc(t.line) + '</span>' : '') +
+         (t.num ? '<span class="tnum">' + esc(t.num) + '</span> ' : '') +
+         (t.platform ? '<span class="tnum">· kol. ' + esc(t.platform) + '</span>' : '') + '</div>';
+    h += '<div class="h-route">' + routeHtml(t) + '</div>';
+    h += '<div id="cd" class="' + cd.cls + '"><span class="lbl">' + (t.canceled ? '' : 'odjezd za') + '</span>' +
+         '<span class="big num">' + cd.big + '</span>' + (cd.unit ? '<span class="unit">' + cd.unit + '</span>' : '') + '</div>';
+    h += '<div class="tri">' +
+         '<div class="c sched"><label>Pravidelně</label><b class="num">' + hm(t.sched) + '</b></div>' +
+         '<div class="c"><label>Zpoždění</label><b class="num ' + dc + '">' + delayText(t) + '</b></div>' +
+         '<div class="c"><label>Odjezd</label><b class="num ' + dc + '">' + (t.canceled ? '—' : hm(t.predShow)) + '</b></div>' +
+         '</div>';
+    var ar = arrival(t);
+    if (ar) h += '<div class="arr">Příjezd ' + esc(ar.dest) + '<b class="num ' + ar.cls + '">' + ar.time + '</b></div>';
+    var walk = +S.walk || 0;
+    if (walk > 0 && !t.canceled) {
+      var leave = Math.floor((t.pred - now) / 60000) - walk;
+      var wt, wc;
+      if (leave > 1) { wt = 'Vyraž za ' + leave + ' min'; wc = 'ok'; }
+      else if (leave >= 0) { wt = 'Vyraž hned!'; wc = 'warn'; }
+      else { wt = 'Pěšky už to nestihneš'; wc = 'bad'; }
+      h += '<div id="walk" class="' + wc + '">' + wt + '</div>';
+    }
+    h += '<div class="where">' + esc(whereText(t)) + (t.delayKnown && !t.canceled ? ' · <b>zpoždění ' + (t.delayMin > 0 ? '+' + t.delayMin : t.delayMin) + ' min</b>' : '') + '</div>';
+    h += '</div>';
+
+    if (rest.length) {
+      h += '<div id="listT">Další vlaky</div>';
+      for (var j = 0; j < rest.length; j++) {
+        var r = rest[j];
+        var rc = delayClass(r);
+        var mins = Math.max(0, Math.floor((r.pred - now) / 60000));
+        var inTxt = r.canceled ? '<span class="bad">zrušen</span>' :
+                    mins >= 60 ? Math.floor(mins / 60) + ' h ' + pad(mins % 60) : 'za ' + mins + ' min';
+        var delayed = r.canceled || (r.delayKnown && r.delayMin > 0);
+        var cells;
+        if (delayed) {
+          cells = '<div class="r-s num">' + hm(r.sched) + '</div>' +
+                  '<div class="r-d num ' + rc + '">' + delayText(r) + '</div>' +
+                  '<div class="r-p num ' + rc + '">' + (r.canceled ? '—' : hm(r.predShow)) + '</div>';
+        } else {
+          cells = '<div class="r-one num">' + hm(r.sched) + (r.delayKnown ? '<span class="sm ok">včas</span>' : '') + '</div>';
+        }
+        var ra = arrival(r);
+        h += '<div class="row' + (r.canceled ? ' canceled' : '') + '"><div class="rt">' + cells +
+             '<div class="r-in num">' + inTxt + '</div>' +
+             '</div><div class="r-route">' + routeHtml(r) +
+             (ra ? ' <b class="num ' + ra.cls + '">' + ra.time + '</b>' : '') +
+             '</div><div class="r-sub">' +
+             esc((r.line ? r.line + ' ' : '') + r.num) +
+             (r.canceled ? ' · <span class="x">odřeknut</span>' : (r.delayKnown && r.lastStop ? ' · ' + esc(r.lastStop) : '')) +
+             '</div></div>';
+      }
+    }
+    main.innerHTML = h;
+    renderInfo();
+    wantTrips([t].concat(rest));
+  }
+
+  var lastInfoKey = '';
+  function renderInfo() {
+    var key = '';
+    var h = '';
+    for (var i = 0; i < infotexts.length && i < 3; i++) {
+      var tx = infotexts[i] && (infotexts[i].text || infotexts[i].text_en);
+      if (tx) { h += '<div class="itx">' + esc(tx) + '</div>'; key += tx; }
+    }
+    if (key !== lastInfoKey) { $('info').innerHTML = h; lastInfoKey = key; }
+  }
+
+  function setStatus() {
+    var el = $('status');
+    var now = Date.now();
+    var txt, cls = '';
+    if (loading) { txt = 'načítám'; cls = 'loading'; }
+    else if (lastErr && lastErr !== 'notoken') {
+      txt = lastErr + (lastOk ? ' · data ' + ago(now - lastOk) : '');
+      cls = 'stale';
+    } else if (lastOk) {
+      var age = now - lastOk;
+      txt = 'aktualizováno ' + ago(age);
+      if (age > 3 * 60000 && age > (nextFetchAt - lastOk) + 60000) cls = 'stale';
+    } else { txt = '—'; }
+    el.className = cls;
+    el.innerHTML = esc(txt) + '<span class="dot"></span>';
+  }
+  function ago(ms) {
+    var s = Math.round(ms / 1000);
+    if (s < 10) return 'teď';
+    if (s < 60) return 'před ' + s + ' s';
+    return 'před ' + Math.floor(s / 60) + ' min';
+  }
+
+  // ---------- hodiny + lokální přepočet každou sekundu ----------
+  function tick() {
+    var d = new Date();
+    $('clock').innerHTML = d.getHours() + ':' + pad(d.getMinutes()) + '<span class="sec">' + pad(d.getSeconds()) + '</span>';
+    if (trains.length || lastErr) render();
+    setStatus();
+    // když hlavní vlak odjel, hned si řekneme o čerstvá data
+    if (watchUntil && Date.now() > watchUntil && !loading) { watchUntil = 0; refreshNow(); return; }
+    // pojistka proti uspanému setTimeout (starší telefony)
+    if (!loading && nextFetchAt && Date.now() > nextFetchAt + 5000) refreshNow();
+  }
+
+  // ---------- pull-to-refresh ----------
+  function setupPull() {
+    var startY = null, dist = 0, ptr = $('ptr');
+    document.addEventListener('touchstart', function (e) {
+      if ($('set').style.display === 'block') return;
+      if ((window.pageYOffset || document.documentElement.scrollTop) <= 0) startY = e.touches[0].clientY; else startY = null;
+      dist = 0;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (startY == null) return;
+      dist = e.touches[0].clientY - startY;
+      if (dist > 0) {
+        var h = Math.min(dist / 2, 70);
+        ptr.style.height = h + 'px';
+        ptr.style.lineHeight = h + 'px';
+        ptr.innerHTML = dist > 120 ? '↻ Pusť pro obnovení' : '↓ Táhni dolů';
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', function () {
+      if (startY != null && dist > 120) {
+        ptr.innerHTML = 'Obnovuji…';
+        setTimeout(function () { ptr.style.height = '0'; }, 600);
+        refreshNow();
+      } else { ptr.style.height = '0'; }
+      startY = null; dist = 0;
+    }, { passive: true });
+    $('status').onclick = function () { refreshNow(); };
+  }
+
+  // ---------- nastavení UI ----------
+  function setupSettings() {
+    $('gear').onclick = function (e) {
+      e.preventDefault();
+      $('sToken').value = S.token || '';
+      $('sStation').value = S.station || 'Strančice';
+      $('sWalk').value = S.walk || 0;
+      $('sCount').value = S.count || 5;
+      $('set').style.display = 'block';
+    };
+    $('sClose').onclick = function (e) { e.preventDefault(); $('set').style.display = 'none'; };
+    $('sSave').onclick = function (e) {
+      e.preventDefault();
+      S.token = ($('sToken').value || '').replace(/\s+/g, '') || DEFAULT_TOKEN;
+      S.station = ($('sStation').value || 'Strančice').replace(/^\s+|\s+$/g, '');
+      S.walk = Math.max(0, parseInt($('sWalk').value, 10) || 0);
+      S.count = Math.min(12, Math.max(1, parseInt($('sCount').value, 10) || 5));
+      saveSettings();
+      $('set').style.display = 'none';
+      trains = []; lastOk = 0; lastErr = '';
+      render(); refreshNow();
+    };
+  }
+
+  // ---------- udržet displej zapnutý (kde to prohlížeč umí) ----------
+  function keepAwake() {
+    try {
+      if (navigator.wakeLock && navigator.wakeLock.request) {
+        navigator.wakeLock.request('screen')['catch'](function () {});
+      }
+    } catch (e) {}
+  }
+
+  // ---------- celá obrazovka ----------
+  function isFull() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+      (window.matchMedia && (window.matchMedia('(display-mode: fullscreen)').matches || window.matchMedia('(display-mode: standalone)').matches)) ||
+      window.navigator.standalone === true;
+  }
+  function goFull() {
+    var el = document.documentElement;
+    try {
+      var r = el.requestFullscreen ? el.requestFullscreen({ navigationUI: 'hide' }) : (el.webkitRequestFullscreen ? el.webkitRequestFullscreen() : null);
+      if (r && r['catch']) r['catch'](function () {});
+    } catch (e) {}
+    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait')['catch'](function () {}); } catch (e) {}
+  }
+  function exitFull() {
+    try { if (document.exitFullscreen) document.exitFullscreen(); else if (document.webkitExitFullscreen) document.webkitExitFullscreen(); } catch (e) {}
+  }
+  function updateFsBtn() { $('fs').style.display = isFull() && !(document.fullscreenElement || document.webkitFullscreenElement) ? 'none' : 'inline-block';
+    $('fs').innerHTML = (document.fullscreenElement || document.webkitFullscreenElement) ? 'Zrušit celou obrazovku' : 'Celá obrazovka'; }
+  function setupFullscreen() {
+    $('fs').onclick = function (e) { e.preventDefault(); if (document.fullscreenElement || document.webkitFullscreenElement) exitFull(); else goFull(); };
+    // klepnutí na hodiny také přepne do celé obrazovky
+    $('clock').onclick = function () { if (!isFull()) goFull(); };
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
+    updateFsBtn();
+  }
+  function registerSW() {
+    try {
+      if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js')['catch'](function () {});
+    } catch (e) {}
+  }
+
+  // ---------- start ----------
+  loadSettings();
+  setupSettings();
+  setupFullscreen();
+  registerSW();
+  setupPull();
+  keepAwake();
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) { keepAwake(); refreshNow(); }
+  });
+  document.addEventListener('click', keepAwake);
+  // jednou za ~12 h celou stránku znovu načíst (prevence úniků paměti na starém telefonu)
+  setTimeout(function () { location.reload(); }, 12 * 3600 * 1000);
+  tick();
+  setInterval(tick, 1000);
+  fetchData();
+})();
+</script>
+</body>
+</html>

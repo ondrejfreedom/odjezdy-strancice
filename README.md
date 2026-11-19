@@ -1,0 +1,25 @@
+# Odjezdy Strančice → Praha
+
+Jedna HTML stránka pro starý mobil v předsíni. Ukazuje nejbližší vlak do Prahy (pravidelný odjezd, zpoždění, skutečný odjezd, odpočet, kde vlak naposledy byl, jestli vyjíždí ze Strančic) a pod ním další vlaky.
+
+**Data:** Golemio API (PID). Do něj tečou online polohy a zpoždění vlaků od Správy železnic. Potřebuješ zdarma API klíč: https://api.golemio.cz/api-keys/
+
+## Možnost A – Vercel (doporučeno, klíč zůstane na serveru)
+1. Nahraj tuhle složku do nového repa na GitHubu (`index.html`, `api/odjezdy.js`).
+2. Na vercel.com: Add New → Project → vyber repo → Deploy (nic nastavovat netřeba).
+3. Settings → Environment Variables: `GOLEMIO_TOKEN` = tvůj klíč → Redeploy.
+4. Na mobilu otevři `https://<projekt>.vercel.app`.
+
+## Možnost B – úplně bez serveru
+Otevři `index.html` kdekoli (GitHub Pages, nebo jen soubor v telefonu), klepni na **Nastavení** a vlož API klíč. Klíč se uloží v prohlížeči.
+Jde to i přes odkaz `index.html?token=TVUJ_KLIC` (uloží se a z adresy zmizí).
+
+## Ovládání
+- Samo se obnovuje: každých 30 s (méně než 10 min do odjezdu), každou minutu (10–30 min), každých 5 min (víc než 30 min). Když vlak odjede, data se obnoví hned.
+- Ruční obnovení: táhni stránku dolů, nebo klepni na „aktualizováno…“ vpravo nahoře.
+- V Nastavení můžeš zadat čas cesty na nádraží → ukáže „Vyraž za X min“.
+
+## Tipy pro mobil v předsíni
+- Android: Nastavení → Displej → Vypnutí obrazovky na maximum, nebo Možnosti pro vývojáře → „Nevypínat obrazovku při nabíjení“.
+- V Chrome: menu → „Přidat na plochu“ → otevře se bez adresního řádku.
+- Hodiny v telefonu nech na automatickém čase (odpočet z nich počítá).
