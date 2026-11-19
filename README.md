@@ -14,6 +14,13 @@ Jedna HTML stránka pro starý mobil v předsíni. Ukazuje nejbližší vlak do 
 Otevři `index.html` kdekoli (GitHub Pages, nebo jen soubor v telefonu), klepni na **Nastavení** a vlož API klíč. Klíč se uloží v prohlížeči.
 Jde to i přes odkaz `index.html?token=TVUJ_KLIC` (uloží se a z adresy zmizí).
 
+## Instalace jako aplikace (ikona, celá obrazovka)
+1. Otevři stránku na https adrese (GitHub Pages / Vercel) s klíčem: `https://<adresa>/?token=TVUJ_KLIC` – klíč se uloží a z adresy zmizí.
+2. Chrome → menu ⋮ → **Instalovat aplikaci** / **Přidat na plochu**.
+3. Spouštěj ikonou „Vlak Praha“ – otevře se přes celou obrazovku bez adresního řádku.
+
+Na lokálním souboru instalace nefunguje; tam použij tlačítko **Celá obrazovka** dole (nebo klepni na hodiny).
+
 ## Ovládání
 - Samo se obnovuje: každých 30 s (méně než 10 min do odjezdu), každou minutu (10–30 min), každých 5 min (víc než 30 min). Když vlak odjede, data se obnoví hned.
 - Ruční obnovení: táhni stránku dolů, nebo klepni na „aktualizováno…“ vpravo nahoře.
