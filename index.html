@@ -143,9 +143,11 @@
   #track { width: 200%; overflow: hidden; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
   .page { float: left; width: 50%; }
   .page.off { height: 1px; overflow: hidden; visibility: hidden; }
-  #dots { position: fixed; left: 0; right: 0; bottom: 2.2vw; text-align: center; z-index: 5; pointer-events: none; }
-  #dots { }
-  #dots span { box-shadow: 0 0 0 1.4vw rgba(6,13,26,0.85); display: inline-block; width: 2.2vw; height: 2.2vw; border-radius: 50%; background: #23406f; margin: 0 1.2vw; pointer-events: auto; }
+  #dots { text-align: right; margin-top: 1.6vw; }
+  #route.tap { display: inline-block; background: #12284d; border: 0.3vw solid #24467e; border-radius: 3vw; padding: 0.4vw 2.5vw; }
+  #route.tap.praha { color: #ffd98a; border-color: #8a6d22; background: #2c2510; }
+  .wx-now.praha { border-color: #8a6d22; }
+  #dots span { display: inline-block; width: 2vw; height: 2vw; border-radius: 50%; background: #23406f; margin-left: 1.6vw; }
   #dots span.on { background: #9fc2ff; }
 
   /* mini souhrn počasí na hlavní stránce */
@@ -247,6 +249,39 @@
   @-webkit-keyframes fogmove { from { -webkit-transform: translateX(-2vw); } to { -webkit-transform: translateX(2vw); } }
   @keyframes fogmove { from { transform: translateX(-2vw); } to { transform: translateX(2vw); } }
 
+
+  /* ---- kompaktní rozložení počasí (v2) ---- */
+  #wx { padding-bottom: 4vw; }
+  .wx-now { padding: 2vw 4vw 2.5vw; }
+  .wx-row .sc { width: 38%; }
+  .scene { width: 33vw; height: 27vw; }
+  .scene-in { left: 0; top: 0; width: 42vw; height: 36vw; -webkit-transform: scale(0.76); transform: scale(0.76); -webkit-transform-origin: 0 0; transform-origin: 0 0; }
+  .wx-temp .t { font-size: 16vw; }
+  .wx-temp .f { font-size: 4.6vw; margin-top: 1vw; }
+  .wx-temp .d { font-size: 3.8vw; }
+  .wx-temp .mx { font-size: 4.4vw; color: #ffd98a; margin-top: 1vw; }
+  .wx-temp .mx b { font-size: 6vw; color: #ffc857; }
+  .wx-temp .mx span { color: #b59a5a; font-size: 3.4vw; }
+  .wx-sum { margin-top: 2.5vw; padding: 2.6vw 3.5vw; }
+  .wx-sum .ti { font-size: 5.6vw; }
+  .wx-sum .su { font-size: 3.5vw; margin-top: 0.8vw; }
+  .chips { margin-top: 1vw; }
+  .chip { font-size: 3.2vw; padding: 0.7vw 2.6vw; margin-top: 1vw; }
+  .anch { margin-top: 2.5vw; border-spacing: 1.4vw 0; }
+  .anch > div { padding: 1.8vw 0.5vw 1.8vw; }
+  .anch .l { font-size: 3.3vw; }
+  .anch .v { font-size: 8vw; line-height: 1.05; margin-top: 0.3vw; }
+  .anch .p { font-size: 3vw; margin-top: 0; }
+  .anch .p b { color: #c9dafc; }
+  .anch .ic { font-size: 3vw; color: #8fa3c4; margin-top: 0.6vw; }
+  .anch .ic svg { width: 6.5vw; height: 6.5vw; margin: 0 0.8vw 0 0; vertical-align: -2vw; }
+  .anch .h { font-size: 2.8vw; color: #6f8bb8; margin-top: 0.4vw; }
+  .wx-card { margin-top: 2.5vw; padding: 2.2vw 2vw 1.5vw; }
+  .wx-h { margin: 0 1.5vw 0.5vw; font-size: 3vw; }
+  .wx-h .legend { float: right; text-transform: none; letter-spacing: 0; font-size: 2.8vw; margin: 0; }
+  .wx-h .legend i { margin: 0 0.8vw 0 2.2vw; }
+  .lg-f { border-top-color: #9db8e8 !important; }
+  .wx-line { font-size: 3.4vw; margin-top: 2.5vw; }
   @media (min-width: 700px) {
     #wxchip { font-size: 22px; } #wxchip b { font-size: 26px; } #wxchip svg { width: 36px; height: 36px; vertical-align: -10px; }
     .wx-temp .t { font-size: 120px; } .wx-temp .f { font-size: 30px; } .wx-temp .d { font-size: 26px; }
@@ -262,6 +297,7 @@
     <div id="headR">
       <div id="route">Strančice → Praha</div>
       <div id="status" class="loading">načítám<span class="dot"></span></div>
+      <div id="dots"><span class="on"></span><span></span></div>
     </div>
   </div>
   <div id="wxchip"></div>
@@ -275,7 +311,6 @@
     <div class="page off" id="p1"><div id="wx"><div id="msg">Načítám počasí…</div></div></div>
   </div></div>
 </div>
-<div id="dots"><span class="on"></span><span></span></div>
 
 <div id="set">
   <h2>Nastavení</h2>
@@ -710,7 +745,8 @@
     var now = Date.now();
     if (page === 1) {
       el.className = wxLoading ? 'loading' : (wxErr || (wxAt && now - wxAt > 40 * 60000)) ? 'stale' : '';
-      el.innerHTML = esc(wxLoading ? 'načítám' : wxAt ? 'počasí ' + ago(now - wxAt) : (wxErr || '—')) + '<span class="dot"></span>';
+      el.innerHTML = esc(wxLoc === 'praha' ? 'zpět za ' + Math.max(0, Math.ceil((pragueUntil - now) / 1000)) + ' s' :
+        wxLoading ? 'načítám' : wxAt ? 'počasí ' + ago(now - wxAt) : (wxErr || '—')) + '<span class="dot"></span>';
       return;
     }
     var txt, cls = '';
@@ -766,7 +802,7 @@
       S.count = Math.min(12, Math.max(1, parseInt($('sCount').value, 10) || 5));
       var g = ($('sGeo').value || '').replace(/\s/g, '').split(',');
       if (g.length === 2 && !isNaN(parseFloat(g[0])) && !isNaN(parseFloat(g[1]))) { S.lat = parseFloat(g[0]); S.lon = parseFloat(g[1]); }
-      wxSceneKey = ''; fetchWx();
+      WXS.home.d = null; WXS.home.at = 0; syncWx(); wxSceneKey = ''; fetchWx();
       saveSettings();
       $('set').style.display = 'none';
       trains = []; lastOk = 0; lastErr = '';
@@ -779,32 +815,45 @@
   // ---------- POČASÍ (Open-Meteo, bez klíče) ----------
   // =====================================================================
   var WX_URL = 'https://api.open-meteo.com/v1/forecast';
+  var PRAHA = { lat: 50.0833, lon: 14.4333 };   // Praha centrum / hl. n.
+  var WXS = { home: { d: null, at: 0, err: '', loading: false }, praha: { d: null, at: 0, err: '', loading: false } };
+  var wxLoc = 'home', pragueUntil = 0;
+  // zrcadlo právě zobrazené lokality
   var wx = null, wxAt = 0, wxErr = '', wxLoading = false, wxNextAt = 0, wxSceneKey = '';
+  function syncWx() { var x = WXS[wxLoc]; wx = x.d; wxAt = x.at; wxErr = x.err; wxLoading = x.loading; }
 
-  function wxQuery() {
-    return '?latitude=' + (+S.lat || 49.948) + '&longitude=' + (+S.lon || 14.677) +
+  function wxQuery(l) {
+    var c = l === 'praha' ? PRAHA : { lat: +S.lat || 49.948, lon: +S.lon || 14.677 };
+    return '?latitude=' + c.lat + '&longitude=' + c.lon +
       '&timezone=Europe%2FPrague&timeformat=unixtime&forecast_days=3&forecast_hours=36&forecast_minutely_15=16' +
       '&current=temperature_2m,apparent_temperature,weather_code,is_day,precipitation,wind_speed_10m,wind_gusts_10m' +
       '&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,is_day,wind_gusts_10m' +
       '&minutely_15=precipitation' +
       '&daily=sunrise,sunset';
   }
-  function fetchWx() {
-    if (wxLoading) return;
-    wxLoading = true;
-    xhrGet(WX_URL + wxQuery(), {}, function (st, txt) {
-      wxLoading = false;
+  function fetchWx(l) {
+    l = l || 'home';
+    var x = WXS[l];
+    if (x.loading) return;
+    x.loading = true; syncWx();
+    xhrGet(WX_URL + wxQuery(l), {}, function (st, txt) {
+      x.loading = false;
       var j = null;
       if (st === 200) { try { j = JSON.parse(txt); } catch (e) {} }
-      if (j && j.hourly && j.current) {
-        wx = j; wxAt = Date.now(); wxErr = '';
-        wxNextAt = Date.now() + 15 * 60000;
-      } else {
-        wxErr = st === 0 ? 'Počasí: bez připojení' : 'Počasí nedostupné (' + st + ')';
-        wxNextAt = Date.now() + (wx ? 2 * 60000 : 30000);
-      }
-      renderWx(true);
+      if (j && j.hourly && j.current) { x.d = j; x.at = Date.now(); x.err = ''; }
+      else x.err = st === 0 ? 'Počasí: bez připojení' : 'Počasí nedostupné (' + st + ')';
+      if (l === 'home') wxNextAt = Date.now() + (x.err ? (x.d ? 2 * 60000 : 30000) : 15 * 60000);
+      syncWx();
+      if (l === wxLoc) renderWx(true); else renderChip();
     });
+  }
+  function setLoc(l) {
+    wxLoc = l;
+    if (l === 'praha') pragueUntil = Date.now() + 60000;
+    syncWx(); wxSceneKey = '';
+    updateRoute();
+    renderWx(true); setStatus();
+    if (!wx || Date.now() - wxAt > 10 * 60000) fetchWx(l);
   }
 
   // ---- pomocné ----
@@ -901,8 +950,8 @@
   }
 
   // ---- rozbor předpovědi ----
-  function wxHours() {
-    var H = wx.hourly, out = [];
+  function wxHours(wd) {
+    var H = wd.hourly, out = [];
     for (var i = 0; i < H.time.length; i++) {
       out.push({ t: H.time[i] * 1000, temp: H.temperature_2m[i], feel: H.apparent_temperature[i],
         prob: H.precipitation_probability ? (H.precipitation_probability[i] || 0) : 0, mm: H.precipitation[i] || 0,
@@ -916,8 +965,8 @@
   function snowy(h) { var k = wxKind(h.code); return k === 'snow' || h.temp <= 1; }
   function span(h) { return hh(h.t - 3600000) + '–' + hh(h.t); }
 
-  function analyze(now) {
-    var hours = wxHours();
+  function analyze(now, wd) {
+    var hours = wxHours(wd);
     var i0 = 0;
     for (var i = 0; i < hours.length; i++) { if (hours[i].t <= now) i0 = i; }
     var mid = new Date(now); mid.setHours(24, 0, 0, 0);
@@ -925,9 +974,9 @@
     var win = [];
     for (i = i0; i < hours.length; i++) { if (hours[i].t <= end + 3600000) win.push(hours[i]); }
     var future = win.slice(1);   // hodiny, které ještě přijdou
-    var cur = wx.current, curKind = wxKind(cur.weather_code);
-    var m15 = (wx.minutely_15 && wx.minutely_15.precipitation) || [];
-    var m15t = (wx.minutely_15 && wx.minutely_15.time) || [];
+    var cur = wd.current, curKind = wxKind(cur.weather_code);
+    var m15 = (wd.minutely_15 && wd.minutely_15.precipitation) || [];
+    var m15t = (wd.minutely_15 && wd.minutely_15.time) || [];
     var rainNow = cur.precipitation > 0.05 || (m15[0] || 0) > 0.05 ||
       curKind === 'drizzle' || curKind === 'rain' || curKind === 'snow' || curKind === 'storm';
     var toMid = end === mid.getTime();
@@ -1006,54 +1055,59 @@
   function chartSVG(hours, i0, now) {
     var pts = hours.slice(i0, i0 + 13);
     if (pts.length < 2) return '';
-    var W = 340, x0 = 16, x1 = 324, yT = 36, yB = 112, pBase = 166, pH = 38;
+    var W = 340, x0 = 34, x1 = 330, yT = 22, yB = 104, pBase = 140, pH = 28;
     var step = (x1 - x0) / (pts.length - 1);
     var lo = Infinity, hi = -Infinity, i;
     for (i = 0; i < pts.length; i++) { lo = Math.min(lo, pts[i].temp, pts[i].feel); hi = Math.max(hi, pts[i].temp, pts[i].feel); }
-    if (hi - lo < 4) { var m = (hi + lo) / 2; lo = m - 2; hi = m + 2; }
+    var tick = 1, steps = [1, 2, 5, 10];
+    for (var si = 0; si < steps.length; si++) { tick = steps[si]; if ((Math.ceil(hi / tick) - Math.floor(lo / tick)) <= 5) break; }
+    lo = Math.floor(lo / tick) * tick; hi = Math.ceil(hi / tick) * tick;
+    if (hi - lo < 4) hi = lo + 4;
     function X(k) { return x0 + k * step; }
     function Y(v) { return yB - (v - lo) / (hi - lo) * (yB - yT); }
-    var s = '<svg class="chart" viewBox="0 0 ' + W + ' 200" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Roboto,Arial,sans-serif">';
-    // nula
-    if (lo < 0 && hi > 0) s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + Y(0).toFixed(1) + '" y2="' + Y(0).toFixed(1) + '" stroke="#3d5a8a" stroke-dasharray="2 4"/><text x="' + (x1 + 2) + '" y="' + (Y(0) + 3).toFixed(1) + '" font-size="8" fill="#5f7aa6">0°</text>';
+    var s = '<svg class="chart" viewBox="0 0 ' + W + ' 172" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,Roboto,Arial,sans-serif">';
+    // osa a mřížka teplot
+    for (var v = lo; v <= hi + 0.001; v += tick) {
+      var yy0 = Y(v).toFixed(1), zero = Math.abs(v) < 0.001;
+      s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + yy0 + '" y2="' + yy0 + '" stroke="' + (zero ? '#4f72ad' : '#1c355f') + '"' + (zero ? ' stroke-dasharray="4 3"' : '') + '/>';
+      s += '<text x="' + (x0 - 5) + '" y="' + (+yy0 + 3.5) + '" font-size="10" text-anchor="end" fill="' + (zero ? '#9fc2ff' : '#6f8bb8') + '">' + sgn(Math.round(v)) + '°</text>';
+    }
     // půlnoc
     for (i = 1; i < pts.length; i++) {
-      var d = new Date(pts[i].t);
-      if (d.getHours() === 0) s += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="22" y2="' + pBase + '" stroke="#2a4470" stroke-dasharray="3 3"/><text x="' + X(i) + '" y="18" font-size="9" text-anchor="middle" fill="#6f8bb8">půlnoc</text>';
+      if (new Date(pts[i].t).getHours() === 0) s += '<line x1="' + X(i) + '" x2="' + X(i) + '" y1="14" y2="' + pBase + '" stroke="#2a4470" stroke-dasharray="3 3"/><text x="' + X(i) + '" y="11" font-size="9" text-anchor="middle" fill="#6f8bb8">půlnoc</text>';
     }
     // srážky (za předchozí hodinu → sloupec mezi body)
     for (i = 1; i < pts.length; i++) {
       var cx = X(i) - step / 2, bw = step * 0.62, p = pts[i];
-      if (p.prob > 0) { var hp = Math.max(2, p.prob / 100 * pH); s += '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + (pBase - hp).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hp.toFixed(1) + '" rx="2" fill="#5aa0ff" fill-opacity="0.18"/>'; }
-      if (p.mm >= 0.05) { var hm2 = Math.max(3, Math.min(p.mm / 2, 1) * pH); s += '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + (pBase - hm2).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hm2.toFixed(1) + '" rx="2" fill="' + (snowy(p) ? '#dfe8ff' : '#5aa0ff') + '"/>'; }
-      var top = Math.max(2, p.prob / 100 * pH, p.mm >= 0.05 ? Math.max(3, Math.min(p.mm / 2, 1) * pH) : 0);
-      if (p.prob >= 25) s += '<text x="' + cx.toFixed(1) + '" y="' + (pBase - top - 3).toFixed(1) + '" font-size="8.5" text-anchor="middle" fill="#7fb0ff">' + p.prob + '%</text>';
+      var hp = p.prob > 0 ? Math.max(2, p.prob / 100 * pH) : 0, hmm = p.mm >= 0.05 ? Math.max(3, Math.min(p.mm / 2, 1) * pH) : 0;
+      if (hp) s += '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + (pBase - hp).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hp.toFixed(1) + '" rx="2" fill="#5aa0ff" fill-opacity="0.2"/>';
+      if (hmm) s += '<rect x="' + (cx - bw / 2).toFixed(1) + '" y="' + (pBase - hmm).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + hmm.toFixed(1) + '" rx="2" fill="' + (snowy(p) ? '#dfe8ff' : '#5aa0ff') + '"/>';
+      if (p.prob >= 25) s += '<text x="' + cx.toFixed(1) + '" y="' + (pBase - Math.max(hp, hmm) - 3).toFixed(1) + '" font-size="8.5" text-anchor="middle" fill="#7fb0ff">' + p.prob + '%</text>';
     }
     s += '<line x1="' + x0 + '" x2="' + x1 + '" y1="' + pBase + '" y2="' + pBase + '" stroke="#1f3a66"/>';
-    // pocitová (čárkovaně) a skutečná teplota
+    // pocitová (modrošedá čárkovaná) a skutečná (žlutá) teplota
     var lf = '', lt = '';
     for (i = 0; i < pts.length; i++) { lf += (i ? ' ' : '') + X(i).toFixed(1) + ',' + Y(pts[i].feel).toFixed(1); lt += (i ? ' ' : '') + X(i).toFixed(1) + ',' + Y(pts[i].temp).toFixed(1); }
-    s += '<polyline points="' + lf + '" fill="none" stroke="#8fa3c4" stroke-width="1.6" stroke-dasharray="4 3" opacity="0.75"/>';
-    s += '<polyline points="' + lt + '" fill="none" stroke="#ffd36b" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
-    // minimum
+    s += '<polyline points="' + lf + '" fill="none" stroke="#9db8e8" stroke-width="2" stroke-dasharray="5 3" stroke-linejoin="round"/>';
+    s += '<polyline points="' + lt + '" fill="none" stroke="#ffd36b" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>';
     var mi = 0;
     for (i = 1; i < pts.length; i++) if (pts[i].temp < pts[mi].temp) mi = i;
     for (i = 0; i < pts.length; i++) {
-      var yy = Y(pts[i].temp);
-      if (i === mi) {
-        s += '<circle cx="' + X(i) + '" cy="' + yy.toFixed(1) + '" r="4.5" fill="#7fc4ff" stroke="#0b1a33" stroke-width="1.5"/>';
-        var ty = yy + 17 > pBase - pH - 2 ? yy - 9 : yy + 17;
-        s += '<text x="' + X(i) + '" y="' + ty.toFixed(1) + '" font-size="11" font-weight="700" text-anchor="middle" fill="#7fc4ff">min ' + t1(pts[i].temp) + '</text>';
-      } else if (i % 2 === 0) {
-        s += '<circle cx="' + X(i) + '" cy="' + yy.toFixed(1) + '" r="2.4" fill="#ffd36b"/>';
-        if (Math.abs(i - mi) > 1) s += '<text x="' + X(i) + '" y="' + (yy - 8).toFixed(1) + '" font-size="11" font-weight="700" text-anchor="middle" fill="#e6eefc">' + tInt(pts[i].temp) + '</text>';
-      }
+      if (i === 0 || !(i % 3 === 0 || i === mi)) continue;   // první bod by kolidoval s osou
+      if (i !== mi && Math.abs(i - mi) === 1) continue;   // ať se popisky nepřekrývají
+      var yt = Y(pts[i].temp), yf = Y(pts[i].feel), above = yt <= yf;
+      // skutečná: popisek nad čarou, pocitová: pod svou čarou
+      var ty = above ? yt - 7 : yt + 14, fy = above ? yf + 14 : yf - 7;
+      if (i === mi) s += '<circle cx="' + X(i) + '" cy="' + yt.toFixed(1) + '" r="4.5" fill="#7fc4ff" stroke="#0b1a33" stroke-width="1.5"/>';
+      else s += '<circle cx="' + X(i) + '" cy="' + yt.toFixed(1) + '" r="2.6" fill="#ffd36b"/>';
+      s += '<circle cx="' + X(i) + '" cy="' + yf.toFixed(1) + '" r="2.2" fill="#9db8e8"/>';
+      s += '<text x="' + X(i) + '" y="' + ty.toFixed(1) + '" font-size="11" font-weight="700" text-anchor="middle" fill="' + (i === mi ? '#7fc4ff' : '#ffe39a') + '">' + (i === mi ? 'min ' + t1(pts[i].temp) : tInt(pts[i].temp)) + '</text>';
+      s += '<text x="' + X(i) + '" y="' + Math.min(fy, pBase - pH - 2).toFixed(1) + '" font-size="10" font-weight="600" text-anchor="middle" fill="#9db8e8">' + tInt(pts[i].feel) + '</text>';
     }
     // osa hodin
-    for (i = 0; i < pts.length; i += 2) s += '<text x="' + X(i) + '" y="186" font-size="10.5" text-anchor="middle" fill="#6f8bb8">' + new Date(pts[i].t).getHours() + '</text>';
-    // teď
+    for (i = 0; i < pts.length; i += 2) s += '<text x="' + X(i) + '" y="156" font-size="10.5" text-anchor="middle" fill="#6f8bb8">' + new Date(pts[i].t).getHours() + 'h</text>';
     var nx = x0 + (now - pts[0].t) / 3600000 * step;
-    if (nx >= x0 && nx <= x1) s += '<line x1="' + nx.toFixed(1) + '" x2="' + nx.toFixed(1) + '" y1="24" y2="' + pBase + '" stroke="#9fc2ff" stroke-width="1.2" opacity="0.6"/><text x="' + nx.toFixed(1) + '" y="197" font-size="9" text-anchor="middle" fill="#9fc2ff">teď</text>';
+    if (nx >= x0 && nx <= x1) s += '<line x1="' + nx.toFixed(1) + '" x2="' + nx.toFixed(1) + '" y1="16" y2="' + pBase + '" stroke="#9fc2ff" stroke-width="1.2" opacity="0.55"/><text x="' + nx.toFixed(1) + '" y="168" font-size="9" text-anchor="middle" fill="#9fc2ff">teď</text>';
     return s + '</svg>';
   }
 
@@ -1075,12 +1129,28 @@
   }
 
   function renderChip() {
-    var el = $('wxchip');
-    if (!wx) { el.style.display = 'none'; return; }
-    var a = analyze(Date.now()), c = wx.current;
+    var el = $('wxchip'), hd = WXS.home.d;
+    if (!hd) { el.style.display = 'none'; return; }
+    var a = analyze(Date.now(), hd), c = hd.current;
     el.style.display = page === 1 ? 'none' : 'block';
+    var mx = dayMax(hd, Date.now());
     el.innerHTML = '<span class="go">›</span>' + iconSVG(c.weather_code, c.is_day) + '<b class="num">' + t1(c.temperature_2m) + '</b>' +
-      ' <span class="num">pocit. ' + tInt(c.apparent_temperature) + '</span> · <span class="c-' + a.sum.cls + '">' + esc(a.sum.short || a.sum.title) + '</span>';
+      ' <span class="num">pocit. ' + tInt(c.apparent_temperature) + '</span>' +
+      (mx ? ' · <span class="num c-maybe">přes den ' + tInt(mx.temp) + '</span>' : '') +
+      ' · <span class="c-' + a.sum.cls + '">' + esc(a.sum.short || a.sum.title) + '</span>';
+  }
+
+  // ráno (4–9 h) je důležité, jak teplo bude přes den
+  function dayMax(wd, now) {
+    var hr = new Date(now).getHours();
+    if (hr < 4 || hr >= 9) return null;
+    var hours = wxHours(wd), endD = new Date(now); endD.setHours(21, 0, 0, 0);
+    var mx = null;
+    for (var i = 0; i < hours.length; i++) {
+      if (hours[i].t < now - 3600000 || hours[i].t > endD.getTime()) continue;
+      if (!mx || hours[i].temp > mx.temp) mx = hours[i];
+    }
+    return mx;
   }
 
   var wxLastMinute = -1;
@@ -1090,41 +1160,43 @@
     wxLastMinute = minute;
     renderChip();
     var box = $('wx');
-    if (!wx) { box.innerHTML = '<div id="msg">' + (wxErr ? esc(wxErr) : 'Načítám počasí…') + '</div>'; return; }
-    var c = wx.current, a = analyze(now);
-    var key = c.weather_code + '|' + c.is_day;
+    if (!wx) { box.innerHTML = '<div id="msg">' + (wxErr ? esc(wxErr) : 'Načítám počasí…') + '</div>'; wxSceneKey = ''; return; }
+    var c = wx.current, a = analyze(now, wx);
+    var key = wxLoc + '|' + c.weather_code + '|' + c.is_day;
     if (!$('wxScene') || key !== wxSceneKey) {
-      box.innerHTML = '<div class="wx-now' + (c.is_day ? '' : ' night') + '" id="wxNow"><div class="wx-row"><div><div class="scene" id="wxScene"></div></div><div class="wx-temp" id="wxTemp"></div></div></div><div id="wxBody"></div>';
+      box.innerHTML = '<div class="wx-now' + (c.is_day ? '' : ' night') + (wxLoc === 'praha' ? ' praha' : '') + '" id="wxNow"><div class="wx-row"><div class="sc"><div class="scene"><div class="scene-in" id="wxScene"></div></div></div><div class="wx-temp" id="wxTemp"></div></div></div><div id="wxBody"></div>';
       $('wxScene').innerHTML = sceneHTML(c.weather_code, c.is_day);
       wxSceneKey = key;
     }
+    var mx = dayMax(wx, now);
     $('wxTemp').innerHTML = '<div class="t num">' + t1(c.temperature_2m) + '</div>' +
       '<div class="f">pocitově <b class="num">' + tInt(c.apparent_temperature) + '</b></div>' +
-      '<div class="d">' + esc(WX_DESC[c.weather_code] || '') + '</div>';
+      (mx ? '<div class="mx">přes den až <b class="num">' + tInt(mx.temp) + '</b> <span>(' + hh(mx.t) + ')</span></div>'
+          : '<div class="d">' + esc(WX_DESC[c.weather_code] || '') + '</div>');
 
-    var h = '';
+    var h = '', i;
     h += '<div class="wx-sum ' + a.sum.cls + '"><div class="ti c-' + a.sum.cls + '">' + esc(a.sum.title) + '</div><div class="su">' + esc(a.sum.sub) + '</div>';
     if (a.min) h += '<div class="su">' + (a.toMid ? 'Do půlnoci' : 'Do ' + hh(a.end)) + ' nejníž <b class="num" style="color:#9fd0ff">' + t1(a.min.temp) + '</b> (kolem ' + hh(a.min.t) + '), pocitově až ' + tInt(a.minFeel) + '</div>';
     if (a.chips.length) {
       h += '<div class="chips">';
-      for (var i = 0; i < a.chips.length; i++) h += '<span class="chip ' + a.chips[i][0] + '">' + esc(a.chips[i][1]) + '</span>';
+      for (i = 0; i < a.chips.length; i++) h += '<span class="chip ' + a.chips[i][0] + '">' + esc(a.chips[i][1]) + '</span>';
       h += '</div>';
     }
     h += '</div>';
-    h += '<div class="wx-card"><div class="wx-h">Příštích 12 hodin</div>' + chartSVG(a.hours, a.i0, now) +
-      '<div class="legend"><i class="lg-t"></i>teplota<i class="lg-f"></i>pocitová<i class="lg-p"></i>srážky / pravděpodobnost</div></div>';
     var an = anchors(a.hours, now);
     if (an.length) {
       h += '<div class="anch">';
       for (i = 0; i < an.length; i++) {
         var x = an[i].h;
-        h += '<div><div class="l">' + an[i].label + '</div><div class="h">' + an[i].when + '</div>' + iconSVG(x.code, x.day) +
-          '<div class="v num">' + tInt(x.temp) + '</div><div class="p">pocit. ' + tInt(x.feel) + '</div>' +
-          '<div class="p' + (x.prob >= 50 ? ' c-rain' : x.prob >= 25 ? ' c-maybe' : '') + '">' + (x.prob >= 10 ? x.prob + ' %' : 'sucho') + '</div></div>';
+        h += '<div><div class="l">' + an[i].label + '</div>' +
+          '<div class="v num">' + tInt(x.temp) + '</div>' +
+          '<div class="p">pocit. <b class="num">' + tInt(x.feel) + '</b></div>' +
+          '<div class="ic">' + iconSVG(x.code, x.day) + '<span class="' + (x.prob >= 50 ? 'c-rain' : x.prob >= 25 ? 'c-maybe' : '') + '">' + (x.prob >= 10 ? x.prob + '%' : 'sucho') + '</span></div>' +
+          '<div class="h">' + an[i].when + '</div></div>';
       }
       h += '</div>';
     }
-    // nejchladněji v příštích 24 h + slunce
+    h += '<div class="wx-card"><div class="wx-h">Příštích 12 hodin<span class="legend"><i class="lg-t"></i>teplota<i class="lg-f"></i>pocitová<i class="lg-p"></i>srážky</span></div>' + chartSVG(a.hours, a.i0, now) + '</div>';
     var cold = null;
     for (i = a.i0; i < a.hours.length && a.hours[i].t <= now + 24 * 3600000; i++) if (!cold || a.hours[i].temp < cold.temp) cold = a.hours[i];
     var lines = [];
@@ -1132,13 +1204,13 @@
       (new Date(cold.t).getDate() !== new Date(now).getDate() && new Date(cold.t).getHours() >= 6 ? 'zítra ' : '') + 'kolem ' + hh(cold.t));
     var D = wx.daily, ev = [];
     if (D && D.sunrise) for (i = 0; i < D.sunrise.length; i++) { ev.push([D.sunrise[i] * 1000, 'Východ slunce']); ev.push([D.sunset[i] * 1000, 'Západ slunce']); }
-    ev.sort(function (p, q) { return p[0] - q[0]; });
+    ev.sort(function (p2, q) { return p2[0] - q[0]; });
     var sunTxt = [];
     for (i = 0; i < ev.length && sunTxt.length < 2; i++) if (ev[i][0] > now) sunTxt.push(ev[i][1] + ' <b class="num">' + hm(ev[i][0]) + '</b>');
     if (sunTxt.length) lines.push(sunTxt.join(' · '));
-    lines.push('Vítr ' + Math.round(c.wind_speed_10m) + ' km/h, v nárazech ' + Math.round(c.wind_gusts_10m) + ' km/h');
+    lines.push(esc(WX_DESC[c.weather_code] || '') + ' · vítr ' + Math.round(c.wind_speed_10m) + ' km/h, v nárazech ' + Math.round(c.wind_gusts_10m) + ' km/h');
     h += '<div class="wx-line">' + lines.join('<br>') + '</div>';
-    h += '<div class="wx-foot">Počasí: Open-Meteo · aktualizováno ' + ago(now - wxAt) + (wxErr ? ' · ' + esc(wxErr) : '') + '</div>';
+    h += '<div class="wx-foot">Počasí: Open-Meteo · ' + (wxLoc === 'praha' ? 'Praha' : esc(S.station || 'Strančice')) + ' · aktualizováno ' + ago(now - wxAt) + (wxErr ? ' · ' + esc(wxErr) : '') + '</div>';
     $('wxBody').innerHTML = h;
   }
 
@@ -1162,11 +1234,23 @@
     pageTimer = setTimeout(function () { $(page ? 'p0' : 'p1').className = 'page off'; }, 380);
     var ds = $('dots').getElementsByTagName('span');
     ds[0].className = p ? '' : 'on'; ds[1].className = p ? 'on' : '';
-    $('route').innerHTML = p ? 'Počasí · ' + esc(S.station || 'Strančice') : esc(S.station || 'Strančice') + ' → Praha';
+    if (p === 0 && wxLoc !== 'home') { wxLoc = 'home'; syncWx(); wxSceneKey = ''; }
+    updateRoute();
     renderChip();
     if (changed) { try { window.scrollTo(0, 0); } catch (e) {} }
-    if (p === 1) { renderWx(true); if (Date.now() - wxAt > 10 * 60000) fetchWx(); }
+    if (p === 1) { renderWx(true); if (Date.now() - wxAt > 10 * 60000) fetchWx(wxLoc); }
     setStatus();
+  }
+
+  function updateRoute() {
+    var r = $('route');
+    if (page === 1) {
+      r.className = 'tap' + (wxLoc === 'praha' ? ' praha' : '');
+      r.innerHTML = 'Počasí · ' + (wxLoc === 'praha' ? 'Praha' : esc(S.station || 'Strančice'));
+    } else {
+      r.className = '';
+      r.innerHTML = esc(S.station || 'Strančice') + ' → Praha';
+    }
   }
 
   function setupGestures() {
@@ -1206,7 +1290,7 @@
         if (dy > 120) {
           ptr.innerHTML = 'Obnovuji…';
           setTimeout(function () { ptr.style.height = '0'; }, 600);
-          if (page === 1) fetchWx(); else { refreshNow(); if (Date.now() - wxAt > 5 * 60000) fetchWx(); }
+          if (page === 1) fetchWx(wxLoc); else { refreshNow(); if (Date.now() - WXS.home.at > 5 * 60000) fetchWx(); }
         } else ptr.style.height = '0';
       }
       mode = null; dx = dy = 0;
@@ -1215,7 +1299,8 @@
     ds[0].onclick = function () { goPage(0); };
     ds[1].onclick = function () { goPage(1); };
     $('wxchip').onclick = function () { goPage(1); };
-    $('status').onclick = function () { if (page === 1) fetchWx(); else refreshNow(); };
+    $('status').onclick = function () { if (page === 1) fetchWx(wxLoc); else refreshNow(); };
+    $('route').onclick = function () { if (page === 1) setLoc(wxLoc === 'praha' ? 'home' : 'praha'); };
     document.addEventListener('keydown', function (e) {
       if (e.keyCode === 39) goPage(1); else if (e.keyCode === 37) goPage(0);
     });
@@ -1226,10 +1311,10 @@
   // volá se z tick() každou sekundu
   function wxTick() {
     var now = Date.now();
-    if (!wxLoading && wxNextAt && now > wxNextAt) fetchWx();
+    if (!WXS.home.loading && wxNextAt && now > wxNextAt) fetchWx('home');
+    // Praha se po minutě vrátí na domácí předpověď
+    if (wxLoc === 'praha' && now > pragueUntil) setLoc('home');
     renderWx(false);
-    // po 3 minutách bez dotyku se vrať na odjezdy
-    if (page === 1 && now - lastTouch > 3 * 60000) goPage(0);
   }
 
   // ---------- udržet displej zapnutý (kde to prohlížeč umí) ----------
@@ -1282,7 +1367,7 @@
   setupGestures();
   keepAwake();
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { keepAwake(); refreshNow(); if (Date.now() - wxAt > 10 * 60000) fetchWx(); }
+    if (!document.hidden) { keepAwake(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
   });
   document.addEventListener('click', keepAwake);
   // jednou za ~12 h celou stránku znovu načíst (prevence úniků paměti na starém telefonu)
