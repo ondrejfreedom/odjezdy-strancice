@@ -250,6 +250,11 @@
   @keyframes fogmove { from { transform: translateX(-2vw); } to { transform: translateX(2vw); } }
 
 
+  /* ---- odpočet vlaku na stránce počasí ---- */
+  #trchip { display: none; background: #0e2347; border: 0.4vw solid #1f4685; border-radius: 3.5vw; padding: 1.6vw 3.5vw; margin-bottom: 2.5vw; font-size: 3.6vw; color: #9fb6dc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #trchip .big { font-size: 6.4vw; font-weight: 800; color: #fff; }
+  #trchip .ln { display: inline-block; background: #1d63d8; color: #fff; font-weight: 800; border-radius: 1.2vw; padding: 0 1.5vw; margin-right: 2vw; font-size: 3.6vw; vertical-align: 0.6vw; }
+  #trchip .go { float: right; color: #6f8bb8; margin-left: 2vw; line-height: 8vw; }
   /* ---- kompaktní rozložení počasí (v2) ---- */
   #wx { padding-bottom: 4vw; }
   .wx-now { padding: 2vw 4vw 2.5vw; }
@@ -308,7 +313,7 @@
       <div id="info"></div>
       <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br>Přejeď doleva pro počasí<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
     </div>
-    <div class="page off" id="p1"><div id="wx"><div id="msg">Načítám počasí…</div></div></div>
+    <div class="page off" id="p1"><div id="trchip"></div><div id="wx"><div id="msg">Načítám počasí…</div></div></div>
   </div></div>
 </div>
 
@@ -769,12 +774,36 @@
     return 'před ' + Math.floor(s / 60) + ' min';
   }
 
+  // ---------- odpočet nejbližšího vlaku na stránce počasí ----------
+  function minutyText(m) {
+    if (m >= 60) return Math.floor(m / 60) + ' h ' + pad(m % 60) + ' min';
+    if (m === 1) return '1 minutu';
+    if (m >= 2 && m <= 4) return m + ' minuty';
+    return m + ' minut';
+  }
+  var lastTrChip = '';
+  function renderTrainChip() {
+    var el = $('trchip');
+    var up = upcoming(Date.now()), t = null;
+    for (var i = 0; i < up.length; i++) { if (!up[i].canceled) { t = up[i]; break; } }
+    var h = '';
+    if (t) {
+      var m = Math.floor((t.pred - Date.now()) / 60000);   // zaokrouhleno dolů
+      var dc = delayClass(t);
+      h = '<span class="go">›</span>' + (t.line ? '<span class="ln">' + esc(t.line) + '</span>' : '') +
+        (m < 1 ? '<span class="big warn">Vlak odjíždí</span>' : 'Vlak za <span class="big num">' + minutyText(m) + '</span>') +
+        ' · <span class="num ' + dc + '">' + hm(t.predShow) + (t.delayKnown && t.delayMin > 0 ? ' (+' + t.delayMin + ')' : '') + '</span>';
+    }
+    if (h !== lastTrChip) { el.innerHTML = h; el.style.display = h ? 'block' : 'none'; lastTrChip = h; }
+  }
+
   // ---------- hodiny + lokální přepočet každou sekundu ----------
   function tick() {
     var d = new Date();
     $('clock').innerHTML = d.getHours() + ':' + pad(d.getMinutes()) + '<span class="sec">' + pad(d.getSeconds()) + '</span>';
     if (trains.length || lastErr) render();
     setStatus();
+    renderTrainChip();
     wxTick();
     // když hlavní vlak odjel, hned si řekneme o čerstvá data
     if (watchUntil && Date.now() > watchUntil && !loading) { watchUntil = 0; refreshNow(); return; }
@@ -1299,6 +1328,7 @@
     ds[0].onclick = function () { goPage(0); };
     ds[1].onclick = function () { goPage(1); };
     $('wxchip').onclick = function () { goPage(1); };
+    $('trchip').onclick = function () { goPage(0); };
     $('status').onclick = function () { if (page === 1) fetchWx(wxLoc); else refreshNow(); };
     $('route').onclick = function () { if (page === 1) setLoc(wxLoc === 'praha' ? 'home' : 'praha'); };
     document.addEventListener('keydown', function (e) {
