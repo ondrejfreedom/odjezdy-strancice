@@ -801,7 +801,7 @@
         wxNextAt = Date.now() + 15 * 60000;
       } else {
         wxErr = st === 0 ? 'Počasí: bez připojení' : 'Počasí nedostupné (' + st + ')';
-        wxNextAt = Date.now() + 2 * 60000;
+        wxNextAt = Date.now() + (wx ? 2 * 60000 : 30000);
       }
       renderWx(true);
     });
