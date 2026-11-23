@@ -250,6 +250,24 @@
   @keyframes fogmove { from { transform: translateX(-2vw); } to { transform: translateX(2vw); } }
 
 
+  /* ---- Tím jedu ---- */
+  .ride { display: block; margin: 3.5vw 0 0; text-align: center; font-size: 5.4vw; font-weight: 800; padding: 2.4vw 2vw 2vw; border-radius: 3.5vw;
+    border: 0.4vw solid #2a5aa8; background: #10264a; color: #c9dafc; text-decoration: none; box-shadow: 0 1.1vw 0 #050c1a; cursor: pointer; }
+  .ride .al { width: 6.4vw; height: 6.4vw; vertical-align: -1.3vw; margin-right: 2vw; }
+  .ride .sub { display: block; font-size: 3.1vw; font-weight: 600; color: #7f9bc8; margin-top: 0.5vw; }
+  .ride.on { background: #3a2e08; border-color: #ffc857; color: #ffd98a; box-shadow: inset 0 1vw 2.5vw rgba(0,0,0,0.55); -webkit-transform: translateY(1vw); transform: translateY(1vw); }
+  .ride.on .sub { color: #d1b36a; }
+  .ride.on .al { -webkit-animation: ring 2.4s ease-in-out infinite; animation: ring 2.4s ease-in-out infinite; }
+  @-webkit-keyframes ring { 0%, 60%, 100% { -webkit-transform: rotate(0); } 64% { -webkit-transform: rotate(14deg); } 68% { -webkit-transform: rotate(-14deg); } 72% { -webkit-transform: rotate(10deg); } 76% { -webkit-transform: rotate(-8deg); } 80% { -webkit-transform: rotate(0); } }
+  @keyframes ring { 0%, 60%, 100% { transform: rotate(0); } 64% { transform: rotate(14deg); } 68% { transform: rotate(-14deg); } 72% { transform: rotate(10deg); } 76% { transform: rotate(-8deg); } 80% { transform: rotate(0); } }
+  #trchip .al { width: 5vw; height: 5vw; vertical-align: -1vw; color: #ffc857; margin-left: 1.5vw; }
+  #toast { display: none; position: fixed; left: 3vw; right: 3vw; top: 3vw; z-index: 20; border-radius: 4vw; padding: 4vw; text-align: center;
+    font-size: 7vw; font-weight: 800; color: #1a1200; background: #ffc857; box-shadow: 0 2vw 8vw rgba(0,0,0,0.6); }
+  #toast.show { display: block; -webkit-animation: pulse2 1s ease-in-out infinite alternate; animation: pulse2 1s ease-in-out infinite alternate; }
+  #toast.bad { background: #ff6b6b; color: #2a0505; }
+  #toast .al { width: 8vw; height: 8vw; vertical-align: -1.6vw; margin-right: 2vw; }
+  @-webkit-keyframes pulse2 { from { opacity: 1; } to { opacity: 0.8; } }
+  @keyframes pulse2 { from { opacity: 1; } to { opacity: 0.8; } }
   /* ---- odpočet vlaku na stránce počasí ---- */
   #trchip { display: none; background: #0e2347; border: 0.4vw solid #1f4685; border-radius: 3.5vw; padding: 1.6vw 3.5vw; margin-bottom: 2.5vw; font-size: 3.6vw; color: #9fb6dc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #trchip .big { font-size: 6.4vw; font-weight: 800; color: #fff; }
@@ -296,6 +314,7 @@
 </style>
 </head>
 <body>
+<div id="toast"></div>
 <div id="wrap">
   <div id="head">
     <div id="clock" class="num">--:--</div>
@@ -306,7 +325,7 @@
     </div>
   </div>
   <div id="wxchip"></div>
-  <div id="ptr">↓ Pusť pro obnovení</div>
+  <div id="ptr"></div>
   <div id="pager"><div id="track">
     <div class="page" id="p0">
       <div id="main"><div id="msg">Načítám odjezdy…</div></div>
@@ -331,6 +350,9 @@
   <input id="sCount" type="number" min="1" max="12" placeholder="5">
   <label for="sGeo">Poloha pro počasí (šířka, délka)</label>
   <input id="sGeo" type="text" placeholder="49.948, 14.677">
+  <label>Upozornění „Tím jedu“</label>
+  <a href="#" class="btn sec" id="sTest" style="margin-top:1vw">Přehrát ukázku (7 min)</a>
+  <p>Zvuk jde přes hlasitost médií. Hlas používá češtinu z nastavení převodu textu na řeč v telefonu.</p>
   <a href="#" class="btn" id="sSave">Uložit</a><a href="#" class="btn sec" id="sClose">Zavřít</a>
 </div>
 
@@ -689,6 +711,7 @@
          '</div>';
     var ar = arrival(t);
     if (ar) h += '<div class="arr">Příjezd ' + esc(ar.dest) + '<b class="num ' + ar.cls + '">' + ar.time + '</b></div>';
+    h += rideButton(t);
     var walk = +S.walk || 0;
     if (walk > 0 && !t.canceled) {
       var leave = Math.floor((t.pred - now) / 60000) - walk;
@@ -774,6 +797,231 @@
     return 'před ' + Math.floor(s / 60) + ' min';
   }
 
+
+  // =====================================================================
+  // ---------- „TÍM JEDU“ – zvukové upozornění na odjezd ----------
+  // =====================================================================
+  var ALARM_SVG = '<svg class="al" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/>' +
+    '<path d="M12 9v4l2.6 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M3 6.5 6.5 3M21 6.5 17.5 3M7.2 19.6 5.6 21.6M16.8 19.6l1.6 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  var STAGES = [15, 10, 7];               // minuty před odjezdem
+  var watch = null;                        // {id, sched, head, done:{15,10,7}, cancelSaid}
+  try { watch = JSON.parse(window.localStorage.getItem('odjezdy.watch') || 'null'); } catch (e) {}
+  function saveWatch() { try { window.localStorage.setItem('odjezdy.watch', JSON.stringify(watch)); } catch (e) {} }
+
+  // ---- zvuk (Web Audio, vše syntetizované – žádné soubory) ----
+  var AC = null, AOUT = null, NOISE = null;
+  function ensureAudio() {
+    try {
+      if (!AC) {
+        var C = window.AudioContext || window.webkitAudioContext;
+        if (!C) return null;
+        AC = new C();
+        AOUT = audioOut(AC, AC.destination);
+      }
+      if (AC.state === 'suspended' && AC.resume) AC.resume();
+    } catch (e) {}
+    return AC;
+  }
+  function audioOut(ctx, dest) {
+    var comp = ctx.createDynamicsCompressor(), g = ctx.createGain();
+    g.gain.value = 0.95; comp.connect(g); g.connect(dest);
+    return comp;
+  }
+  function noiseBuf(ctx) {
+    var len = ctx.sampleRate * 2, b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+  }
+  function env(g, t0, peak, a, hold, r) {
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(peak, t0 + a);
+    g.gain.setValueAtTime(peak, t0 + a + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + hold + r);
+  }
+  // houkačka: tříhlasý akord jako u lokomotivy, s náběhem tónu a jemným vibratem
+  function horn(ctx, out, t0, dur) {
+    var f = [311.1, 370.0, 466.2];
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = 0.7;
+    var g = ctx.createGain(); env(g, t0, 0.2, 0.05, Math.max(0.05, dur - 0.25), 0.2);
+    lp.connect(g); g.connect(out);
+    var lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.frequency.value = 5.5; lg.gain.value = 2.5; lfo.connect(lg);
+    for (var i = 0; i < f.length; i++) {
+      var o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f[i] * 0.93, t0);
+      o.frequency.exponentialRampToValueAtTime(f[i], t0 + 0.09);
+      o.detune.value = (i - 1) * 6;
+      lg.connect(o.frequency);
+      o.connect(lp);
+      o.start(t0); o.stop(t0 + dur + 0.1);
+    }
+    lfo.start(t0); lfo.stop(t0 + dur + 0.1);
+  }
+  // jízda parní lokomotivy: „čuf-čuf“ zrychlující se, dunění a klapání kol
+  function steam(ctx, out, t0, dur) {
+    var nb = NOISE || (NOISE = noiseBuf(ctx));
+    // tichý sykot páry
+    var hs = ctx.createBufferSource(); hs.buffer = nb; hs.loop = true;
+    var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3500;
+    var hg = ctx.createGain(); env(hg, t0, 0.08, 0.6, dur - 1.2, 0.6);
+    hs.connect(hp); hp.connect(hg); hg.connect(out); hs.start(t0); hs.stop(t0 + dur + 0.1);
+    var t = t0, k = 0, iv = 0.42;
+    while (t < t0 + dur - 0.2) {
+      var acc = k % 4 === 0 ? 1 : (k % 2 === 0 ? 0.75 : 0.55);
+      var s = ctx.createBufferSource(); s.buffer = nb;
+      var bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 650 + (k % 2) * 150; bp.Q.value = 0.9;
+      var g = ctx.createGain(); env(g, t, 1.6 * acc, 0.012, 0.03, Math.min(0.22, iv * 0.8));
+      s.connect(bp); bp.connect(g); g.connect(out);
+      s.start(t, Math.random() * 1.5); s.stop(t + 0.35);
+      // dunění
+      var s2 = ctx.createBufferSource(); s2.buffer = nb;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160;
+      var g2 = ctx.createGain(); env(g2, t, 1.8 * acc, 0.01, 0.02, 0.15);
+      s2.connect(lp); lp.connect(g2); g2.connect(out);
+      s2.start(t, Math.random() * 1.5); s2.stop(t + 0.3);
+      k++; t += iv; iv = Math.max(0.2, iv * 0.94);
+    }
+    // klapání kol na spojích kolejnic: ta-dam … ta-dam
+    for (var c = t0 + 0.7; c < t0 + dur - 0.3; c += 1.05) {
+      for (var j = 0; j < 2; j++) {
+        var cs = ctx.createBufferSource(); cs.buffer = nb;
+        var cf = ctx.createBiquadFilter(); cf.type = 'bandpass'; cf.frequency.value = 2400; cf.Q.value = 2;
+        var cg = ctx.createGain(); env(cg, c + j * 0.14, 0.6, 0.003, 0.005, 0.05);
+        cs.connect(cf); cf.connect(cg); cg.connect(out);
+        cs.start(c + j * 0.14, Math.random()); cs.stop(c + j * 0.14 + 0.1);
+      }
+    }
+  }
+  // n× houkačka, jízda, n× houkačka; vrací čas konce
+  function alertSeq(ctx, out, t0, n) {
+    var hd = n === 1 ? 1.2 : 0.6, t = t0, i;
+    for (i = 0; i < n; i++) { horn(ctx, out, t, hd); t += hd + 0.28; }
+    t += 0.15; steam(ctx, out, t, 4.6); t += 4.75;
+    for (i = 0; i < n; i++) { horn(ctx, out, t, hd); t += hd + 0.28; }
+    return t;
+  }
+  function playAlert(n, speech) {
+    var ctx = ensureAudio();
+    var endIn = 0;
+    if (ctx) { var t0 = ctx.currentTime + 0.08; endIn = alertSeq(ctx, AOUT, t0, n) - ctx.currentTime; }
+    if (speech) setTimeout(function () { speak(speech); }, Math.max(0, endIn * 1000) + 250);
+  }
+  function playConfirm() {
+    var ctx = ensureAudio();
+    if (ctx) horn(ctx, AOUT, ctx.currentTime + 0.05, 0.35);
+  }
+  // pro test / náhled: vykreslení do souboru
+  window.__renderTrainAlert = function (n) {
+    var C = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    var ctx = new C(1, 44100 * 14, 44100), out = audioOut(ctx, ctx.destination);
+    NOISE = null;
+    alertSeq(ctx, out, 0.1, n);
+    var p = ctx.startRendering();
+    NOISE = null;
+    return p;
+  };
+
+  // ---- hlas ----
+  function speak(text) {
+    try {
+      if (!window.speechSynthesis) return;
+      var u = new SpeechSynthesisUtterance(text), vs = window.speechSynthesis.getVoices();
+      u.lang = 'cs-CZ'; u.rate = 0.95; u.volume = 1;
+      for (var i = 0; i < vs.length; i++) { if (/^cs/i.test(vs[i].lang)) { u.voice = vs[i]; break; } }
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  try { if (window.speechSynthesis) window.speechSynthesis.getVoices(); } catch (e) {}
+
+  // ---- hlídání vybraného vlaku ----
+  function findWatched() {
+    if (!watch) return null;
+    for (var i = 0; i < trains.length; i++) {
+      var t = trains[i];
+      if ((watch.id && t.id === watch.id) || (t.sched === watch.sched && t.head === watch.head)) return t;
+    }
+    return null;
+  }
+  function toggleRide(id) {
+    var t = null;
+    for (var i = 0; i < trains.length; i++) if (trains[i].id === id) t = trains[i];
+    if (!t) return;
+    ensureAudio();
+    if (watch && watch.id === id) {
+      watch = null; saveWatch();
+      speak('Upozornění zrušeno');
+    } else {
+      var rem = t.pred - Date.now(), done = {};
+      for (var k = 0; k < STAGES.length; k++) if (rem <= STAGES[k] * 60000) done[STAGES[k]] = 1;
+      watch = { id: t.id, sched: t.sched, head: t.head, done: done };
+      saveWatch();
+      playConfirm();
+      speak('Hlídám vlak v ' + hm(t.predShow));
+    }
+    render(); renderTrainChip(true);
+  }
+  function nextStageAt(t) {
+    if (!watch) return 0;
+    for (var k = 0; k < STAGES.length; k++) if (!watch.done[STAGES[k]]) return t.pred - STAGES[k] * 60000;
+    return 0;
+  }
+  function checkWatch() {
+    if (!watch) return;
+    var now = Date.now(), t = findWatched();
+    if (!t) {
+      // vlak už v datech není (odjel) – po čerstvém načtení hlídání ukončíme
+      if (lastOk && now - lastOk < 120000 && now > watch.sched) { watch = null; saveWatch(); }
+      return;
+    }
+    if (t.canceled) {
+      if (!watch.cancelSaid) { watch.cancelSaid = 1; saveWatch(); playAlert(1, 'Pozor, vlak v ' + hm(t.sched) + ' je zrušený.'); showToast('Vlak v ' + hm(t.sched) + ' je zrušený', 'bad'); }
+      if (now > t.sched + 60000) { watch = null; saveWatch(); }
+      return;
+    }
+    var rem = t.pred - now;
+    if (rem <= 0) { watch = null; saveWatch(); return; }
+    for (var k = STAGES.length - 1; k >= 0; k--) {     // od nejnaléhavějšího (7 min)
+      var T = STAGES[k];
+      if (rem <= T * 60000 && !watch.done[T]) {
+        for (var j = 0; j < STAGES.length; j++) if (STAGES[j] >= T) watch.done[STAGES[j]] = 1;
+        saveWatch();
+        var mins = Math.ceil(rem / 60000);
+        var n = T === 15 ? 1 : T === 10 ? 2 : 3;
+        playAlert(n, T === 7 ? 'Vlak odjíždí za ' + minutyText(mins) + ', nejvyšší čas vyrazit.' : null);
+        showToast('Vlak za ' + minutyText(mins) + (T === 7 ? ' – vyraž!' : ''), T === 7 ? 'bad' : 'warn');
+        break;
+      }
+    }
+  }
+  var toastTimer = null;
+  function showToast(text, cls) {
+    var el = $('toast');
+    el.className = 'show ' + (cls || '');
+    el.innerHTML = ALARM_SVG + esc(text);
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = ''; }, 30000);
+  }
+  function rideButton(t) {
+    if (!t.id || t.canceled) return '';
+    var on = !!(watch && watch.id === t.id), sub;
+    if (on) {
+      var at = nextStageAt(t);
+      sub = (at > Date.now() ? 'upozorním v ' + hm(at) : 'hlídám odjezd') + ' · klepnutím zrušíš';
+    } else sub = 'zvukem upozorním 15, 10 a 7 min předem';
+    return '<a class="ride' + (on ? ' on' : '') + '" data-id="' + esc(t.id) + '">' + ALARM_SVG +
+      (on ? 'Tím jedu' : 'Tím jedu') + '<span class="sub">' + sub + '</span></a>';
+  }
+  function rideFromEl(el) {
+    while (el && el !== document) {
+      if (el.getAttribute && el.getAttribute('data-id') && String(el.className).indexOf('ride') >= 0) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+
   // ---------- odpočet nejbližšího vlaku na stránce počasí ----------
   function minutyText(m) {
     if (m >= 60) return Math.floor(m / 60) + ' h ' + pad(m % 60) + ' min';
@@ -782,7 +1030,8 @@
     return m + ' minut';
   }
   var lastTrChip = '';
-  function renderTrainChip() {
+  function renderTrainChip(force) {
+    if (force) lastTrChip = '';
     var el = $('trchip');
     var up = upcoming(Date.now()), t = null;
     for (var i = 0; i < up.length; i++) { if (!up[i].canceled) { t = up[i]; break; } }
@@ -792,7 +1041,8 @@
       var dc = delayClass(t);
       h = '<span class="go">›</span>' + (t.line ? '<span class="ln">' + esc(t.line) + '</span>' : '') +
         (m < 1 ? '<span class="big warn">Vlak odjíždí</span>' : 'Vlak za <span class="big num">' + minutyText(m) + '</span>') +
-        ' · <span class="num ' + dc + '">' + hm(t.predShow) + (t.delayKnown && t.delayMin > 0 ? ' (+' + t.delayMin + ')' : '') + '</span>';
+        ' · <span class="num ' + dc + '">' + hm(t.predShow) + (t.delayKnown && t.delayMin > 0 ? ' (+' + t.delayMin + ')' : '') + '</span>' +
+        (watch && watch.id === t.id ? ALARM_SVG : '');
     }
     if (h !== lastTrChip) { el.innerHTML = h; el.style.display = h ? 'block' : 'none'; lastTrChip = h; }
   }
@@ -803,8 +1053,10 @@
     $('clock').innerHTML = d.getHours() + ':' + pad(d.getMinutes()) + '<span class="sec">' + pad(d.getSeconds()) + '</span>';
     if (trains.length || lastErr) render();
     setStatus();
+    checkWatch();
     renderTrainChip();
     wxTick();
+    ptrWatchdog();
     // když hlavní vlak odjel, hned si řekneme o čerstvá data
     if (watchUntil && Date.now() > watchUntil && !loading) { watchUntil = 0; refreshNow(); return; }
     // pojistka proti uspanému setTimeout (starší telefony)
@@ -823,6 +1075,7 @@
       $('set').style.display = 'block';
     };
     $('sClose').onclick = function (e) { e.preventDefault(); $('set').style.display = 'none'; };
+    $('sTest').onclick = function (e) { e.preventDefault(); playAlert(3, 'Vlak odjíždí za 7 minut, nejvyšší čas vyrazit.'); };
     $('sSave').onclick = function (e) {
       e.preventDefault();
       S.token = ($('sToken').value || '').replace(/\s+/g, '') || DEFAULT_TOKEN;
@@ -1282,11 +1535,21 @@
     }
   }
 
+  var touchActive = false, ptrShownAt = 0;
+  function hidePtr() { var p = $('ptr'); p.style.height = '0'; p.innerHTML = ''; }
+  // pojistka: ukazatel „táhni dolů“ nesmí zůstat viset (např. když prohlížeč gesto zruší)
+  function ptrWatchdog() {
+    var p = $('ptr');
+    if (!touchActive && p.style.height && p.style.height !== '0px' && p.style.height !== '0' && Date.now() - ptrShownAt > 1500) hidePtr();
+  }
+
   function setupGestures() {
-    var sx = 0, sy = 0, dx = 0, dy = 0, mode = null, atTop = true, W = 0, ptr = $('ptr');
+    var sx = 0, sy = 0, dx = 0, dy = 0, mode = null, atTop = true, W = 0, ptr = $('ptr'), rideEl = null, ignoreClick = 0;
     document.addEventListener('touchstart', function (e) {
-      lastTouch = Date.now();
+      lastTouch = Date.now(); touchActive = true;
+      if (watch && (!AC || AC.state !== 'running')) ensureAudio();   // po restartu stránky odemkne zvuk
       if ($('set').style.display === 'block') { mode = 'off'; return; }
+      rideEl = rideFromEl(e.target);
       var t = e.touches[0];
       sx = t.clientX; sy = t.clientY; dx = dy = 0; mode = null; W = pagerW();
       atTop = (window.pageYOffset || document.documentElement.scrollTop) <= 0;
@@ -1306,24 +1569,38 @@
         setX(-page * W + d, false);
       } else if (mode === 'v' && dy > 0) {
         var hgt = Math.min(dy / 2, 70);
-        ptr.style.height = hgt + 'px'; ptr.style.lineHeight = hgt + 'px';
+        ptr.style.height = hgt + 'px'; ptr.style.lineHeight = hgt + 'px'; ptrShownAt = Date.now();
         ptr.innerHTML = dy > 120 ? '↻ Pusť pro obnovení' : '↓ Táhni dolů';
       }
     }, { passive: true });
-    document.addEventListener('touchend', function () {
+    function endTouch(cancel) {
+      touchActive = false;
       if (mode === 'h') {
-        if (dx < -W * 0.18 && page === 0) goPage(1);
-        else if (dx > W * 0.18 && page === 1) goPage(0);
+        if (!cancel && dx < -W * 0.18 && page === 0) goPage(1);
+        else if (!cancel && dx > W * 0.18 && page === 1) goPage(0);
         else goPage(page);
       } else if (mode === 'v') {
-        if (dy > 120) {
+        if (!cancel && dy > 120) {
           ptr.innerHTML = 'Obnovuji…';
-          setTimeout(function () { ptr.style.height = '0'; }, 600);
+          setTimeout(hidePtr, 600);
           if (page === 1) fetchWx(wxLoc); else { refreshNow(); if (Date.now() - WXS.home.at > 5 * 60000) fetchWx(); }
-        } else ptr.style.height = '0';
+        } else hidePtr();
+      } else if (mode === null && !cancel && rideEl) {
+        // klepnutí na „Tím jedu“ (tlačítko se každou sekundu překresluje, proto přes touchend)
+        ignoreClick = Date.now() + 800;
+        toggleRide(rideEl.getAttribute('data-id'));
       }
-      mode = null; dx = dy = 0;
-    }, { passive: true });
+      if (mode !== 'v' && ptr.style.height && ptr.style.height !== '0px' && ptr.innerHTML !== 'Obnovuji…') hidePtr();
+      mode = null; dx = dy = 0; rideEl = null;
+    }
+    document.addEventListener('touchend', function () { endTouch(false); }, { passive: true });
+    document.addEventListener('touchcancel', function () { endTouch(true); }, { passive: true });
+    document.addEventListener('click', function (e) {
+      if (Date.now() < ignoreClick) return;
+      var r = rideFromEl(e.target);
+      if (r) { if (e.preventDefault) e.preventDefault(); toggleRide(r.getAttribute('data-id')); }
+    });
+    $('toast').onclick = function () { $('toast').className = ''; };
     var ds = $('dots').getElementsByTagName('span');
     ds[0].onclick = function () { goPage(0); };
     ds[1].onclick = function () { goPage(1); };
