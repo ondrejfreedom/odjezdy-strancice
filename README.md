@@ -24,6 +24,9 @@ Na lokálním souboru instalace nefunguje; tam použij tlačítko **Celá obrazo
 ## Počasí (přejeď doleva)
 Data z Open-Meteo (zdarma, bez klíče). Aktuální teplota a pocitová, animace podle počasí, souhrn srážek na příštích 6 h (nebo do půlnoci), graf na 12 h, záchytné body ráno / poledne / podvečer / večer a nejnižší teplota. Na hlavní stránce je nahoře krátký souhrn – klepnutím otevře počasí. Po 3 minutách bez dotyku se stránka vrátí na odjezdy. Poloha jde změnit v Nastavení.
 
+## Kalendář (třetí obrazovka)
+Den v týdnu, datum, příštích 7 dní a odpočet dní do nadcházejících událostí. Události (název, datum, ikona, volitelně „každý rok“) se přidávají tlačítkem „Upravit události“ přímo na obrazovce a ukládají se jen v daném telefonu.
+
 ## Ovládání
 - Samo se obnovuje: každých 30 s (méně než 10 min do odjezdu), každou minutu (10–30 min), každých 5 min (víc než 30 min). Když vlak odjede, data se obnoví hned.
 - Ruční obnovení: táhni stránku dolů, nebo klepni na „aktualizováno…“ vpravo nahoře.

@@ -140,8 +140,8 @@
 
   /* ---------- stránkování (swipe) ---------- */
   #pager { overflow: hidden; touch-action: pan-y; -ms-touch-action: pan-y; }
-  #track { width: 200%; overflow: hidden; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
-  .page { float: left; width: 50%; }
+  #track { width: 300%; overflow: hidden; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
+  .page { float: left; width: 33.3333%; }
   .page.off { height: 1px; overflow: hidden; visibility: hidden; }
   #dots { text-align: right; margin-top: 1.6vw; }
   #route.tap { display: inline-block; background: #12284d; border: 0.3vw solid #24467e; border-radius: 3vw; padding: 0.4vw 2.5vw; }
@@ -250,6 +250,59 @@
   @keyframes fogmove { from { transform: translateX(-2vw); } to { transform: translateX(2vw); } }
 
 
+  /* ---- kalendář ---- */
+  .cal-today { text-align: center; border-radius: 5vw; border: 0.4vw solid #1f4685; padding: 3vw 3vw 3.5vw;
+    background: #0e2347; background: -webkit-linear-gradient(top, #13305f, #0b1c3a); background: linear-gradient(180deg, #13305f, #0b1c3a); }
+  .cal-dow { font-size: 6vw; font-weight: 700; color: #9fc2ff; letter-spacing: 0.02em; }
+  .cal-date { font-size: 11vw; font-weight: 800; color: #fff; line-height: 1.1; }
+  .cal-date .num { font-size: 15vw; }
+  .cal-sub { font-size: 3.6vw; color: #7f9bc8; margin-top: 0.5vw; }
+  .cal-week { display: table; width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 1vw 0; margin-top: 2.5vw; }
+  .cw { display: table-cell; text-align: center; background: #0b1a33; border: 0.3vw solid #16305a; border-radius: 2.5vw; padding: 1.2vw 0 1vw; }
+  .cw span { display: block; }
+  .cw .k { font-size: 3vw; color: #6f8bb8; }
+  .cw .n { font-size: 5.4vw; font-weight: 800; color: #c9dafc; }
+  .cw .e { font-size: 4vw; height: 5.4vw; line-height: 5.4vw; }
+  .cw.we .n { color: #8fb0e3; }
+  .cw.past { opacity: 0.45; }
+  .cw.now { background: #1d63d8; border-color: #5a95ff; }
+  .cw.now .k, .cw.now .n { color: #fff; }
+  .cal-list { margin-top: 2.5vw; }
+  .ce { display: table; width: 100%; table-layout: fixed; background: #0b1a33; border: 0.3vw solid #16305a; border-radius: 3.5vw; padding: 2vw 3vw; margin-bottom: 2vw; }
+  .ce > div { display: table-cell; vertical-align: middle; }
+  .ce .ci { width: 13vw; font-size: 9vw; line-height: 1; }
+  .ce .cn .t { font-size: 5vw; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ce .cn .s { font-size: 3.3vw; color: #7f9bc8; margin-top: 0.4vw; }
+  .ce .cc { width: 24vw; text-align: right; }
+  .ce .cc .b { display: block; font-size: 11vw; font-weight: 800; color: #fff; line-height: 1; }
+  .ce .cc .u { display: block; font-size: 3.4vw; color: #8fb0e3; }
+  .ce.soon { border-color: #6b5a1e; }
+  .ce.soon .cc .b { color: #ffc857; }
+  .ce.today { border-color: #2a8a63; background: #0d2a22; }
+  .ce.today .cc .b { color: #6ff0b9; font-size: 8.5vw; }
+  .cal-empty { text-align: center; color: #7f9bc8; font-size: 4.2vw; padding: 7vw 4vw; line-height: 1.5; }
+  .cal-btn { display: block; text-align: center; margin-top: 2.5vw; padding: 3vw; border-radius: 3vw; background: #15294d; border: 0.3vw solid #24467e; color: #c9dafc; font-size: 4.4vw; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .cal-btn.add { background: #1d63d8; border-color: #5a95ff; color: #fff; }
+  .cal-btn.sec { background: transparent; }
+  .cal-edit { margin-top: 3vw; background: #0b1a33; border: 0.3vw solid #24467e; border-radius: 4vw; padding: 3.5vw; }
+  .cal-edit .ch, .cal-edit .ich { font-size: 3.4vw; color: #6f8bb8; text-transform: uppercase; letter-spacing: 0.08em; margin: 1vw 0 2vw; }
+  .cal-edit .ch { margin-top: 3vw; }
+  .cal-edit input[type=text], .cal-edit input[type=date] { width: 100%; font-size: 4.6vw; padding: 2.4vw; border-radius: 2.5vw; border: 0.3vw solid #2a4a80; background: #071226; color: #fff; -webkit-user-select: text; user-select: text; font-family: inherit; }
+  .cal-edit input.err { border-color: #ff6b6b; }
+  .cal-edit .row2 { display: table; width: 100%; margin-top: 2vw; }
+  .cal-edit .row2 > * { display: table-cell; vertical-align: middle; }
+  .cal-edit .yr { width: 34%; text-align: right; font-size: 4vw; color: #c9dafc; white-space: nowrap; }
+  .cal-edit .yr input { width: 5vw; height: 5vw; vertical-align: -0.8vw; margin-right: 1vw; }
+  .icons { line-height: 0; margin-bottom: 2vw; }
+  .icons .ic { display: inline-block; width: 12.2vw; height: 12.2vw; line-height: 12.2vw; text-align: center; font-size: 7vw; border-radius: 2.5vw; margin: 0 1vw 1vw 0; background: #10223f; border: 0.4vw solid transparent; cursor: pointer; }
+  .icons .ic.sel { border-color: #ffc857; background: #2c2510; }
+  .er { display: table; width: 100%; padding: 1.6vw 0; border-top: 0.3vw solid #16305a; }
+  .er > * { display: table-cell; vertical-align: middle; }
+  .er .ei { width: 10vw; font-size: 6vw; }
+  .er .en { font-size: 4.2vw; color: #fff; }
+  .er .en small { display: block; font-size: 3.2vw; color: #7f9bc8; }
+  .er .del { width: 22vw; text-align: center; font-size: 3.6vw; color: #ff8a8a; border: 0.3vw solid #6b2a35; border-radius: 2vw; padding: 1.6vw 0; text-decoration: none; cursor: pointer; }
+  .er .del.sure { background: #6b2a35; color: #fff; }
   /* ---- Tím jedu ---- */
   .ride { display: block; margin: 3.5vw 0 0; text-align: center; font-size: 5.4vw; font-weight: 800; padding: 2.4vw 2vw 2vw; border-radius: 3.5vw;
     border: 0.4vw solid #2a5aa8; background: #10264a; color: #c9dafc; text-decoration: none; box-shadow: 0 1.1vw 0 #050c1a; cursor: pointer; }
@@ -322,7 +375,7 @@
     <div id="headR">
       <div id="route">Strančice → Praha</div>
       <div id="status" class="loading">načítám<span class="dot"></span></div>
-      <div id="dots"><span class="on"></span><span></span></div>
+      <div id="dots"><span class="on"></span><span></span><span></span></div>
     </div>
   </div>
   <div id="wxchip"></div>
@@ -331,9 +384,10 @@
     <div class="page" id="p0">
       <div id="main"><div id="msg">Načítám odjezdy…</div></div>
       <div id="info"></div>
-      <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br>Přejeď doleva pro počasí<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
+      <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br>Přejeď doleva pro počasí a kalendář<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
     </div>
     <div class="page off" id="p1"><div id="trchip"></div><div id="wx"><div id="msg">Načítám počasí…</div></div></div>
+    <div class="page off" id="p2"><div id="cal"></div></div>
   </div></div>
 </div>
 
@@ -772,6 +826,7 @@
   function setStatus() {
     var el = $('status');
     var now = Date.now();
+    if (page === 2) { el.className = ''; el.innerHTML = 'dnes je ' + DNY[new Date(now).getDay()].toLowerCase() + '<span class="dot"></span>'; return; }
     if (page === 1) {
       el.className = wxLoading ? 'loading' : (wxErr || (wxAt && now - wxAt > 40 * 60000)) ? 'stale' : '';
       el.innerHTML = esc(wxLoc === 'praha' ? 'zpět za ' + Math.max(0, Math.ceil((pragueUntil - now) / 1000)) + ' s' :
@@ -1026,6 +1081,162 @@
     return null;
   }
 
+
+  // =====================================================================
+  // ---------- KALENDÁŘ: dnešní den + odpočet do událostí ----------
+  // =====================================================================
+  var DNY = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+  var DNY_K = ['ne', 'po', 'út', 'st', 'čt', 'pá', 'so'];
+  var MES_G = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+  var MES = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
+  var ICONS = ['🎂', '🎁', '🎄', '🎉', '✈️', '🏖️', '⛷️', '🚗', '🚆', '🏥', '🦷', '💉', '💼', '🎓', '⚽', '🎵', '🎭', '🍽️', '🏠', '❤️', '👶', '🐶', '📅', '⭐'];
+  var events = [];
+  try { events = JSON.parse(window.localStorage.getItem('odjezdy.events') || '[]') || []; } catch (e) { events = []; }
+  function saveEvents() { try { window.localStorage.setItem('odjezdy.events', JSON.stringify(events)); } catch (e) {} }
+  var calEditing = false, calIcon = ICONS[0], calLastKey = '';
+
+  function midnight(d) { var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function parseYMD(s) { var m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function dayDiff(a, b) { return Math.round((midnight(b).getTime() - midnight(a).getTime()) / 86400000); }
+  // nejbližší výskyt události (u ročních opakování posune na příští rok)
+  function nextOcc(ev, today) {
+    var d = parseYMD(ev.date);
+    if (!d) return null;
+    if (ev.yearly) {
+      d.setFullYear(today.getFullYear());
+      if (dayDiff(today, d) < 0) d.setFullYear(today.getFullYear() + 1);
+    }
+    return d;
+  }
+  function weekNo(d) {   // ISO týden
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var dn = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - dn);
+    var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+  }
+  function dniText(n) { return n === 1 ? 'den' : (n >= 2 && n <= 4) ? 'dny' : 'dní'; }
+  function upcomingEvents(today) {
+    var out = [];
+    for (var i = 0; i < events.length; i++) {
+      var d = nextOcc(events[i], today);
+      if (!d) continue;
+      var n = dayDiff(today, d);
+      if (n < 0) continue;
+      out.push({ ev: events[i], d: d, n: n });
+    }
+    out.sort(function (a, b) { return a.n - b.n || (a.ev.name < b.ev.name ? -1 : 1); });
+    return out;
+  }
+
+  function renderCal(force) {
+    var box = $('cal');
+    if (!box) return;
+    var now = new Date(), key = ymd(now) + '|' + JSON.stringify(events) + '|' + calEditing;
+    if (!force && key === calLastKey) return;
+    calLastKey = key;
+    var today = midnight(now), up = upcomingEvents(today), h = '', i;
+
+    // dnešní den
+    h += '<div class="cal-today"><div class="cal-dow">' + DNY[now.getDay()] + '</div>' +
+      '<div class="cal-date"><span class="num">' + now.getDate() + '.</span> ' + MES_G[now.getMonth()] + '</div>' +
+      '<div class="cal-sub">' + now.getFullYear() + ' · ' + weekNo(now) + '. týden</div></div>';
+
+    // příštích 7 dní (od dneška) s ikonami událostí
+    h += '<div class="cal-week">';
+    for (i = 0; i < 7; i++) {
+      var d = new Date(today); d.setDate(today.getDate() + i);
+      var ic = '';
+      for (var j = 0; j < events.length; j++) { var o = nextOcc(events[j], today); if (o && dayDiff(o, d) === 0) { ic = events[j].icon || '•'; break; } }
+      var cls = (i === 0 ? ' now' : '') + (d.getDay() === 0 || d.getDay() === 6 ? ' we' : '');
+      h += '<div class="cw' + cls + '"><span class="k">' + DNY_K[d.getDay()] + '</span><span class="n num">' + d.getDate() + '</span><span class="e">' + (ic || '&nbsp;') + '</span></div>';
+    }
+    h += '</div>';
+
+    // odpočet
+    if (!up.length) {
+      h += '<div class="cal-empty">Zatím žádné události.<br>Přidej je tlačítkem „Upravit události“.</div>';
+    } else {
+      h += '<div class="cal-list">';
+      for (i = 0; i < up.length && i < 8; i++) {
+        var u = up[i], big, unit, ccl = '';
+        if (u.n === 0) { big = 'dnes'; unit = ''; ccl = ' today'; }
+        else if (u.n === 1) { big = 'zítra'; unit = ''; ccl = ' soon'; }
+        else { big = String(u.n); unit = dniText(u.n); ccl = u.n <= 7 ? ' soon' : ''; }
+        h += '<div class="ce' + ccl + '"><div class="ci">' + esc(u.ev.icon || '📅') + '</div>' +
+          '<div class="cn"><div class="t">' + esc(u.ev.name) + '</div><div class="s">' + DNY_K[u.d.getDay()] + ' ' + u.d.getDate() + '. ' + MES_G[u.d.getMonth()] +
+          (u.d.getFullYear() !== now.getFullYear() ? ' ' + u.d.getFullYear() : '') + (u.ev.yearly ? ' · každý rok' : '') + '</div></div>' +
+          '<div class="cc"><span class="b num">' + big + '</span>' + (unit ? '<span class="u">' + unit + '</span>' : '') + '</div></div>';
+      }
+      h += '</div>';
+    }
+
+    // úpravy
+    if (!calEditing) {
+      h += '<a class="cal-btn" id="calEditBtn">Upravit události</a>';
+    } else {
+      h += '<div class="cal-edit" id="calEdit"><div class="ch">Nová událost</div>' +
+        '<input id="evName" type="text" maxlength="40" placeholder="Název (např. Narozeniny mámy)">' +
+        '<div class="row2"><input id="evDate" type="date" value="' + ymd(new Date(today.getTime() + 86400000)) + '">' +
+        '<label class="yr"><input id="evYearly" type="checkbox"> každý rok</label></div>' +
+        '<div class="ich">Ikona</div><div class="icons" id="evIcons">';
+      for (i = 0; i < ICONS.length; i++) h += '<span class="ic' + (ICONS[i] === calIcon ? ' sel' : '') + '" data-ic="' + ICONS[i] + '">' + ICONS[i] + '</span>';
+      h += '</div><input id="evEmoji" type="text" maxlength="4" placeholder="nebo vlož vlastní emoji">' +
+        '<a class="cal-btn add" id="evAdd">Přidat</a>';
+      // seznam všech událostí se smazáním
+      if (events.length) {
+        h += '<div class="ch">Uložené události</div>';
+        var all = events.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+        for (i = 0; i < all.length; i++) {
+          var dd = parseYMD(all[i].date);
+          h += '<div class="er"><span class="ei">' + esc(all[i].icon || '📅') + '</span><span class="en">' + esc(all[i].name) +
+            '<small>' + (dd ? dd.getDate() + '. ' + (dd.getMonth() + 1) + '. ' + (all[i].yearly ? '· každý rok' : dd.getFullYear()) : '') + '</small></span>' +
+            '<a class="del" data-del="' + esc(all[i].id) + '">Smazat</a></div>';
+        }
+      }
+      h += '<a class="cal-btn sec" id="calDone">Hotovo</a></div>';
+    }
+    h += '<div class="wx-foot">Události jsou uložené jen v tomto telefonu.</div>';
+    box.innerHTML = h;
+    bindCal();
+  }
+
+  function bindCal() {
+    var b = $('calEditBtn');
+    if (b) b.onclick = function () { calEditing = true; renderCal(true); try { $('calEdit').scrollIntoView(); } catch (e) {} };
+    if (!calEditing) return;
+    $('calDone').onclick = function () { calEditing = false; renderCal(true); try { window.scrollTo(0, 0); } catch (e) {} };
+    var ics = $('evIcons').getElementsByTagName('span');
+    for (var i = 0; i < ics.length; i++) {
+      ics[i].onclick = function () {
+        calIcon = this.getAttribute('data-ic');
+        $('evEmoji').value = '';
+        var all = $('evIcons').getElementsByTagName('span');
+        for (var k = 0; k < all.length; k++) all[k].className = 'ic' + (all[k] === this ? ' sel' : '');
+      };
+    }
+    $('evAdd').onclick = function () {
+      var name = ($('evName').value || '').replace(/^\s+|\s+$/g, ''), date = $('evDate').value;
+      if (!name) { $('evName').focus(); $('evName').className = 'err'; return; }
+      if (!parseYMD(date)) { $('evDate').className = 'err'; return; }
+      var custom = ($('evEmoji').value || '').replace(/\s/g, '');
+      events.push({ id: String(Date.now()), name: name, date: date, icon: custom || calIcon, yearly: !!$('evYearly').checked });
+      saveEvents();
+      renderCal(true);
+    };
+    var dels = $('cal').getElementsByTagName('a');
+    for (var j = 0; j < dels.length; j++) {
+      if (!dels[j].getAttribute('data-del')) continue;
+      dels[j].onclick = function () {
+        var id = this.getAttribute('data-del');
+        if (this.getAttribute('data-sure') !== '1') { this.setAttribute('data-sure', '1'); this.innerHTML = 'Opravdu?'; this.className = 'del sure'; return; }
+        for (var k = 0; k < events.length; k++) if (events[k].id === id) { events.splice(k, 1); break; }
+        saveEvents(); renderCal(true);
+      };
+    }
+  }
+
   // ---------- odpočet nejbližšího vlaku na stránce počasí ----------
   function minutyText(m) {
     if (m >= 60) return Math.floor(m / 60) + ' h ' + pad(m % 60) + ' min';
@@ -1061,6 +1272,7 @@
     checkWatch();
     renderTrainChip();
     wxTick();
+    if (page === 2) renderCal(false);
     ptrWatchdog();
     // když hlavní vlak odjel, hned si řekneme o čerstvá data
     if (watchUntil && Date.now() > watchUntil && !loading) { watchUntil = 0; refreshNow(); return; }
@@ -1419,7 +1631,7 @@
     var el = $('wxchip'), hd = WXS.home.d;
     if (!hd) { el.style.display = 'none'; return; }
     var a = analyze(Date.now(), hd), c = hd.current;
-    el.style.display = page === 1 ? 'none' : 'block';
+    el.style.display = page !== 0 ? 'none' : 'block';
     var mx = dayMax(hd, Date.now());
     el.innerHTML = '<span class="go">›</span>' + iconSVG(c.weather_code, c.is_day) + '<b class="num">' + t1(c.temperature_2m) + '</b>' +
       ' <span class="num">pocit. ' + tInt(c.apparent_temperature) + '</span>' +
@@ -1511,17 +1723,19 @@
     tr.webkitTransform = tf; tr.transform = tf;
   }
   var pageTimer = null;
-  function showBoth() { $('p0').className = 'page'; $('p1').className = 'page'; }
+  var NPAGES = 3;
+  function showBoth() { for (var i = 0; i < NPAGES; i++) $('p' + i).className = 'page'; }
   function goPage(p) {
     var changed = p !== page;
     page = p;
     showBoth();
     setX(-p * pagerW(), true);
     if (pageTimer) clearTimeout(pageTimer);
-    pageTimer = setTimeout(function () { $(page ? 'p0' : 'p1').className = 'page off'; }, 380);
+    pageTimer = setTimeout(function () { for (var i = 0; i < NPAGES; i++) if (i !== page) $('p' + i).className = 'page off'; }, 380);
     var ds = $('dots').getElementsByTagName('span');
-    ds[0].className = p ? '' : 'on'; ds[1].className = p ? 'on' : '';
-    if (p === 0 && wxLoc !== 'home') { wxLoc = 'home'; syncWx(); wxSceneKey = ''; }
+    for (var di = 0; di < ds.length; di++) ds[di].className = di === p ? 'on' : '';
+    if (p !== 1 && wxLoc !== 'home') { wxLoc = 'home'; syncWx(); wxSceneKey = ''; }
+    if (p === 2) renderCal(true);
     updateRoute();
     renderChip();
     if (changed) { try { window.scrollTo(0, 0); } catch (e) {} }
@@ -1531,7 +1745,10 @@
 
   function updateRoute() {
     var r = $('route');
-    if (page === 1) {
+    if (page === 2) {
+      r.className = '';
+      r.innerHTML = 'Kalendář';
+    } else if (page === 1) {
       r.className = 'tap' + (wxLoc === 'praha' ? ' praha' : '');
       r.innerHTML = 'Počasí · ' + (wxLoc === 'praha' ? 'Praha' : esc(S.station || 'Strančice'));
     } else {
@@ -1553,7 +1770,7 @@
     document.addEventListener('touchstart', function (e) {
       lastTouch = Date.now(); touchActive = true;
       if (watch && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
-      if ($('set').style.display === 'block') { mode = 'off'; return; }
+      if ($('set').style.display === 'block' || (page === 2 && calEditing)) { mode = 'off'; return; }
       rideEl = rideFromEl(e.target);
       var t = e.touches[0];
       sx = t.clientX; sy = t.clientY; dx = dy = 0; mode = null; W = pagerW();
@@ -1570,7 +1787,7 @@
       }
       if (mode === 'h') {
         var d = dx;
-        if ((page === 0 && d > 0) || (page === 1 && d < 0)) d = d * 0.25;
+        if ((page === 0 && d > 0) || (page === NPAGES - 1 && d < 0)) d = d * 0.25;
         setX(-page * W + d, false);
       } else if (mode === 'v' && dy > 0) {
         var hgt = Math.min(dy / 2, 70);
@@ -1581,8 +1798,8 @@
     function endTouch(cancel) {
       touchActive = false;
       if (mode === 'h') {
-        if (!cancel && dx < -W * 0.18 && page === 0) goPage(1);
-        else if (!cancel && dx > W * 0.18 && page === 1) goPage(0);
+        if (!cancel && dx < -W * 0.18 && page < NPAGES - 1) goPage(page + 1);
+        else if (!cancel && dx > W * 0.18 && page > 0) goPage(page - 1);
         else goPage(page);
       } else if (mode === 'v') {
         if (!cancel && dy > 120) {
@@ -1610,12 +1827,15 @@
     var ds = $('dots').getElementsByTagName('span');
     ds[0].onclick = function () { goPage(0); };
     ds[1].onclick = function () { goPage(1); };
+    ds[2].onclick = function () { goPage(2); };
     $('wxchip').onclick = function () { goPage(1); };
     $('trchip').onclick = function () { goPage(0); };
     $('status').onclick = function () { if (page === 1) fetchWx(wxLoc); else refreshNow(); };
     $('route').onclick = function () { if (page === 1) setLoc(wxLoc === 'praha' ? 'home' : 'praha'); };
     document.addEventListener('keydown', function (e) {
-      if (e.keyCode === 39) goPage(1); else if (e.keyCode === 37) goPage(0);
+      var tg = e.target && e.target.tagName;
+      if (tg === 'INPUT' || tg === 'TEXTAREA') return;
+      if (e.keyCode === 39) goPage(Math.min(page + 1, NPAGES - 1)); else if (e.keyCode === 37) goPage(Math.max(page - 1, 0));
     });
     window.addEventListener('resize', function () { setX(-page * pagerW(), false); });
     document.addEventListener('mousedown', function () { lastTouch = Date.now(); });
