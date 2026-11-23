@@ -257,6 +257,7 @@
   .ride .sub { display: block; font-size: 3.1vw; font-weight: 600; color: #7f9bc8; margin-top: 0.5vw; }
   .ride.on { background: #3a2e08; border-color: #ffc857; color: #ffd98a; box-shadow: inset 0 1vw 2.5vw rgba(0,0,0,0.55); -webkit-transform: translateY(1vw); transform: translateY(1vw); }
   .ride.on .sub { color: #d1b36a; }
+  .ride .lock { color: #ff8a8a; }
   .ride.on .al { -webkit-animation: ring 2.4s ease-in-out infinite; animation: ring 2.4s ease-in-out infinite; }
   @-webkit-keyframes ring { 0%, 60%, 100% { -webkit-transform: rotate(0); } 64% { -webkit-transform: rotate(14deg); } 68% { -webkit-transform: rotate(-14deg); } 72% { -webkit-transform: rotate(10deg); } 76% { -webkit-transform: rotate(-8deg); } 80% { -webkit-transform: rotate(0); } }
   @keyframes ring { 0%, 60%, 100% { transform: rotate(0); } 64% { transform: rotate(14deg); } 68% { transform: rotate(-14deg); } 72% { transform: rotate(10deg); } 76% { transform: rotate(-8deg); } 80% { transform: rotate(0); } }
@@ -908,10 +909,14 @@
     if (ctx) { var t0 = ctx.currentTime + 0.08; endIn = alertSeq(ctx, AOUT, t0, n) - ctx.currentTime; }
     if (speech) setTimeout(function () { speak(speech); }, Math.max(0, endIn * 1000) + 250);
   }
-  function playConfirm() {
+  // tiché odemčení zvuku (prohlížeč pouští zvuk až po dotyku uživatele)
+  function unlockAudio() {
     var ctx = ensureAudio();
-    if (ctx) horn(ctx, AOUT, ctx.currentTime + 0.05, 0.35);
+    try {
+      if (ctx) { var b = ctx.createBuffer(1, 1, 22050), src = ctx.createBufferSource(); src.buffer = b; src.connect(ctx.destination); src.start(0); }
+    } catch (e) {}
   }
+  function audioLocked() { return !AC || AC.state !== 'running'; }
   // pro test / náhled: vykreslení do souboru
   window.__renderTrainAlert = function (n) {
     var C = window.OfflineAudioContext || window.webkitOfflineAudioContext;
@@ -952,14 +957,12 @@
     ensureAudio();
     if (watch && watch.id === id) {
       watch = null; saveWatch();
-      speak('Upozornění zrušeno');
     } else {
       var rem = t.pred - Date.now(), done = {};
       for (var k = 0; k < STAGES.length; k++) if (rem <= STAGES[k] * 60000) done[STAGES[k]] = 1;
       watch = { id: t.id, sched: t.sched, head: t.head, done: done };
       saveWatch();
-      playConfirm();
-      speak('Hlídám vlak v ' + hm(t.predShow));
+      unlockAudio();
     }
     render(); renderTrainChip(true);
   }
@@ -977,7 +980,7 @@
       return;
     }
     if (t.canceled) {
-      if (!watch.cancelSaid) { watch.cancelSaid = 1; saveWatch(); playAlert(1, 'Pozor, vlak v ' + hm(t.sched) + ' je zrušený.'); showToast('Vlak v ' + hm(t.sched) + ' je zrušený', 'bad'); }
+      if (!watch.cancelSaid) { watch.cancelSaid = 1; saveWatch(); playAlert(1, null); showToast('Vlak v ' + hm(t.sched) + ' je zrušený', 'bad'); }
       if (now > t.sched + 60000) { watch = null; saveWatch(); }
       return;
     }
@@ -1009,7 +1012,8 @@
     var on = !!(watch && watch.id === t.id), sub;
     if (on) {
       var at = nextStageAt(t);
-      sub = (at > Date.now() ? 'upozorním v ' + hm(at) : 'hlídám odjezd') + ' · klepnutím zrušíš';
+      sub = audioLocked() ? '<span class="lock">zvuk zablokován – klepni kamkoli na displej</span>' :
+        (at > Date.now() ? 'upozorním v ' + hm(at) : 'hlídám odjezd') + ' · klepnutím zrušíš';
     } else sub = 'zvukem upozorním 15, 10 a 7 min předem';
     return '<a class="ride' + (on ? ' on' : '') + '" data-id="' + esc(t.id) + '">' + ALARM_SVG +
       (on ? 'Tím jedu' : 'Tím jedu') + '<span class="sub">' + sub + '</span></a>';
@@ -1042,7 +1046,7 @@
       h = '<span class="go">›</span>' + (t.line ? '<span class="ln">' + esc(t.line) + '</span>' : '') +
         (m < 1 ? '<span class="big warn">Vlak odjíždí</span>' : 'Vlak za <span class="big num">' + minutyText(m) + '</span>') +
         ' · <span class="num ' + dc + '">' + hm(t.predShow) + (t.delayKnown && t.delayMin > 0 ? ' (+' + t.delayMin + ')' : '') + '</span>' +
-        (watch && watch.id === t.id ? ALARM_SVG : '');
+        (watch && watch.id === t.id ? (audioLocked() ? ALARM_SVG.replace('class="al"', 'class="al" style="color:#ff6b6b"') : ALARM_SVG) : '');
     }
     if (h !== lastTrChip) { el.innerHTML = h; el.style.display = h ? 'block' : 'none'; lastTrChip = h; }
   }
@@ -1053,6 +1057,7 @@
     $('clock').innerHTML = d.getHours() + ':' + pad(d.getMinutes()) + '<span class="sec">' + pad(d.getSeconds()) + '</span>';
     if (trains.length || lastErr) render();
     setStatus();
+    if (watch && audioLocked() && Math.floor(Date.now() / 1000) % 5 === 0) ensureAudio();
     checkWatch();
     renderTrainChip();
     wxTick();
@@ -1547,7 +1552,7 @@
     var sx = 0, sy = 0, dx = 0, dy = 0, mode = null, atTop = true, W = 0, ptr = $('ptr'), rideEl = null, ignoreClick = 0;
     document.addEventListener('touchstart', function (e) {
       lastTouch = Date.now(); touchActive = true;
-      if (watch && (!AC || AC.state !== 'running')) ensureAudio();   // po restartu stránky odemkne zvuk
+      if (watch && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
       if ($('set').style.display === 'block') { mode = 'off'; return; }
       rideEl = rideFromEl(e.target);
       var t = e.touches[0];
@@ -1596,6 +1601,7 @@
     document.addEventListener('touchend', function () { endTouch(false); }, { passive: true });
     document.addEventListener('touchcancel', function () { endTouch(true); }, { passive: true });
     document.addEventListener('click', function (e) {
+      if (watch && audioLocked()) unlockAudio();
       if (Date.now() < ignoreClick) return;
       var r = rideFromEl(e.target);
       if (r) { if (e.preventDefault) e.preventDefault(); toggleRide(r.getAttribute('data-id')); }
@@ -1674,11 +1680,14 @@
   setupGestures();
   keepAwake();
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { keepAwake(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
+    if (!document.hidden) { keepAwake(); if (watch) ensureAudio(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
   });
   document.addEventListener('click', keepAwake);
   // jednou za ~12 h celou stránku znovu načíst (prevence úniků paměti na starém telefonu)
-  setTimeout(function () { location.reload(); }, 12 * 3600 * 1000);
+  function tryReload() { if (watch) setTimeout(tryReload, 5 * 60000); else location.reload(); }
+  setTimeout(tryReload, 12 * 3600 * 1000);
+  // hlídání přežije i obnovení stránky: hned zkusíme zvuk znovu odemknout
+  if (watch) ensureAudio();
   tick();
   setInterval(tick, 1000);
   fetchData();

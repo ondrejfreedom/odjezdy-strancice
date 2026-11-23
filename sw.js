@@ -1,6 +1,6 @@
 // Jednoduchý service worker: umožní instalaci jako aplikace a start i při výpadku sítě.
 // Data o vlacích (api.golemio.cz) se nikdy necachují.
-var CACHE = 'odjezdy-v5';
+var CACHE = 'odjezdy-v6';
 var SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
