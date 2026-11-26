@@ -99,6 +99,18 @@
   .r-sub { font-size: 3.1vw; color: #6f8bb8; margin-top: 0.8vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .o { color: #6ff0b9 !important; font-weight: 700; }
   .r-sub .x { color: #ff8a8a; font-weight: 700; }
+  .row { position: relative; }
+  .row .r-route, .row .r-sub { padding-right: 13vw; }
+  .row.watched { border-color: #8a6d22; }
+  .r-sub .wtxt { color: #ffc857; font-weight: 700; }
+  .bell { position: absolute; right: 2.6vw; bottom: 2.4vw; width: 11vw; height: 11vw; border-radius: 3vw; border: 0.4vw solid #24467e; background: #10264a;
+    color: #6f8bb8; text-align: center; line-height: 0; cursor: pointer; }
+  .bell .bl { width: 6.6vw; height: 6.6vw; margin-top: 1.8vw; fill: none; }
+  .bell.on { background: #3a2e08; border-color: #ffc857; color: #ffc857; box-shadow: inset 0 0.8vw 1.6vw rgba(0,0,0,0.5); }
+  .bell.on .bl { fill: #ffc857; -webkit-animation: ring 2.4s ease-in-out infinite; animation: ring 2.4s ease-in-out infinite; }
+  #trchip .wb { color: #ffc857; font-size: 3.4vw; margin-left: 1vw; }
+  #trchip .wb .bl { width: 4vw; height: 4vw; vertical-align: -0.7vw; fill: #ffc857; margin-right: 0.5vw; }
+  #toast .bl { display: none; }
 
   #msg { text-align: center; color: #9fc2ff; font-size: 5vw; padding: 12vw 4vw; }
   #msg small { display: block; font-size: 3.5vw; color: #6f8bb8; margin-top: 3vw; }
@@ -797,13 +809,15 @@
           cells = '<div class="r-one num">' + hm(r.sched) + (r.delayKnown ? '<span class="sm ok">včas</span>' : '') + '</div>';
         }
         var ra = arrival(r);
-        h += '<div class="row' + (r.canceled ? ' canceled' : '') + '"><div class="rt">' + cells +
+        var rw = watchOf(r), rat = rw ? nextStageAt(r) : 0;
+        h += '<div class="row' + (r.canceled ? ' canceled' : '') + (rw ? ' watched' : '') + '">' + bellButton(r) + '<div class="rt">' + cells +
              '<div class="r-in num">' + inTxt + '</div>' +
              '</div><div class="r-route">' + routeHtml(r) +
              (ra ? ' <b class="num ' + ra.cls + '">' + ra.time + '</b>' : '') +
              '</div><div class="r-sub">' +
              esc((r.line ? r.line + ' ' : '') + r.num) +
              (r.canceled ? ' · <span class="x">odřeknut</span>' : (r.delayKnown && r.lastStop ? ' · ' + esc(r.lastStop) : '')) +
+             (rw ? ' · <span class="wtxt">' + (rat > now ? 'upozorním v ' + hm(rat) : 'hlídám') + '</span>' : '') +
              '</div></div>';
       }
     }
@@ -861,9 +875,15 @@
     '<path d="M12 9v4l2.6 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
     '<path d="M3 6.5 6.5 3M21 6.5 17.5 3M7.2 19.6 5.6 21.6M16.8 19.6l1.6 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var STAGES = [15, 10, 7];               // minuty před odjezdem
-  var watch = null;                        // {id, sched, head, done:{15,10,7}, cancelSaid}
-  try { watch = JSON.parse(window.localStorage.getItem('odjezdy.watch') || 'null'); } catch (e) {}
-  function saveWatch() { try { window.localStorage.setItem('odjezdy.watch', JSON.stringify(watch)); } catch (e) {} }
+  // hlídané vlaky: [{id, sched, head, done:{15,10,7}, cancelSaid}]
+  var watches = [];
+  try {
+    var wr = JSON.parse(window.localStorage.getItem('odjezdy.watch') || 'null');
+    watches = wr ? (wr.length !== undefined ? wr : [wr]) : [];   // převod ze staré verze (jeden vlak)
+  } catch (e) { watches = []; }
+  function saveWatch() { try { window.localStorage.setItem('odjezdy.watch', JSON.stringify(watches)); } catch (e) {} }
+  var BELL_SVG = '<svg class="bl" viewBox="0 0 24 24"><path d="M12 3.2a5.8 5.8 0 0 0-5.8 5.8v4.1l-1.7 3.1c-.3.5.1 1.1.7 1.1h13.6c.6 0 1-.6.7-1.1l-1.7-3.1V9A5.8 5.8 0 0 0 12 3.2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>' +
+    '<path d="M9.6 19.6a2.4 2.4 0 0 0 4.8 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 
   // ---- zvuk (Web Audio, vše syntetizované – žádné soubory) ----
   var AC = null, AOUT = null, NOISE = null;
@@ -996,12 +1016,18 @@
   }
   try { if (window.speechSynthesis) window.speechSynthesis.getVoices(); } catch (e) {}
 
-  // ---- hlídání vybraného vlaku ----
-  function findWatched() {
-    if (!watch) return null;
+  // ---- hlídání vybraných vlaků ----
+  function watchOf(t) {
+    for (var i = 0; i < watches.length; i++) {
+      var w = watches[i];
+      if ((w.id && t.id === w.id) || (t.sched === w.sched && t.head === w.head)) return w;
+    }
+    return null;
+  }
+  function trainOf(w) {
     for (var i = 0; i < trains.length; i++) {
       var t = trains[i];
-      if ((watch.id && t.id === watch.id) || (t.sched === watch.sched && t.head === watch.head)) return t;
+      if ((w.id && t.id === w.id) || (t.sched === w.sched && t.head === w.head)) return t;
     }
     return null;
   }
@@ -1010,49 +1036,56 @@
     for (var i = 0; i < trains.length; i++) if (trains[i].id === id) t = trains[i];
     if (!t) return;
     ensureAudio();
-    if (watch && watch.id === id) {
-      watch = null; saveWatch();
+    var w = watchOf(t);
+    if (w) {
+      watches.splice(watches.indexOf(w), 1);
     } else {
       var rem = t.pred - Date.now(), done = {};
       for (var k = 0; k < STAGES.length; k++) if (rem <= STAGES[k] * 60000) done[STAGES[k]] = 1;
-      watch = { id: t.id, sched: t.sched, head: t.head, done: done };
-      saveWatch();
+      watches.push({ id: t.id, sched: t.sched, head: t.head, done: done });
       unlockAudio();
     }
+    saveWatch();
     render(); renderTrainChip(true);
   }
   function nextStageAt(t) {
-    if (!watch) return 0;
-    for (var k = 0; k < STAGES.length; k++) if (!watch.done[STAGES[k]]) return t.pred - STAGES[k] * 60000;
+    var w = watchOf(t);
+    if (!w) return 0;
+    for (var k = 0; k < STAGES.length; k++) if (!w.done[STAGES[k]]) return t.pred - STAGES[k] * 60000;
     return 0;
   }
   function checkWatch() {
-    if (!watch) return;
-    var now = Date.now(), t = findWatched();
-    if (!t) {
-      // vlak už v datech není (odjel) – po čerstvém načtení hlídání ukončíme
-      if (lastOk && now - lastOk < 120000 && now > watch.sched) { watch = null; saveWatch(); }
-      return;
-    }
-    if (t.canceled) {
-      if (!watch.cancelSaid) { watch.cancelSaid = 1; saveWatch(); playAlert(1, null); showToast('Vlak v ' + hm(t.sched) + ' je zrušený', 'bad'); }
-      if (now > t.sched + 60000) { watch = null; saveWatch(); }
-      return;
-    }
-    var rem = t.pred - now;
-    if (rem <= 0) { watch = null; saveWatch(); return; }
-    for (var k = STAGES.length - 1; k >= 0; k--) {     // od nejnaléhavějšího (7 min)
-      var T = STAGES[k];
-      if (rem <= T * 60000 && !watch.done[T]) {
-        for (var j = 0; j < STAGES.length; j++) if (STAGES[j] >= T) watch.done[STAGES[j]] = 1;
-        saveWatch();
-        var mins = Math.ceil(rem / 60000);
-        var n = T === 15 ? 1 : T === 10 ? 2 : 3;
-        playAlert(n, T === 7 ? 'Vlak odjíždí za ' + minutyText(mins) + ', nejvyšší čas vyrazit.' : null);
-        showToast('Vlak za ' + minutyText(mins) + (T === 7 ? ' – vyraž!' : ''), T === 7 ? 'bad' : 'warn');
-        break;
+    if (!watches.length) return;
+    var now = Date.now(), changed = false, played = false;
+    for (var i = watches.length - 1; i >= 0; i--) {
+      var w = watches[i], t = trainOf(w);
+      if (!t) {
+        // vlak už v datech není (odjel) – po čerstvém načtení hlídání ukončíme
+        if (lastOk && now - lastOk < 120000 && now > w.sched) { watches.splice(i, 1); changed = true; }
+        continue;
+      }
+      if (t.canceled) {
+        if (!w.cancelSaid && !played) { w.cancelSaid = 1; changed = true; played = true; playAlert(1, null); showToast('Vlak v ' + hm(t.sched) + ' je zrušený', 'bad'); }
+        if (now > t.sched + 60000) { watches.splice(i, 1); changed = true; }
+        continue;
+      }
+      var rem = t.pred - now;
+      if (rem <= 0) { watches.splice(i, 1); changed = true; continue; }
+      if (played) continue;   // dva vlaky naráz: druhý počká na další sekundu
+      for (var k = STAGES.length - 1; k >= 0; k--) {     // od nejnaléhavějšího (7 min)
+        var T = STAGES[k];
+        if (rem <= T * 60000 && !w.done[T]) {
+          for (var j = 0; j < STAGES.length; j++) if (STAGES[j] >= T) w.done[STAGES[j]] = 1;
+          changed = true; played = true;
+          var mins = Math.ceil(rem / 60000);
+          var n = T === 15 ? 1 : T === 10 ? 2 : 3;
+          playAlert(n, T === 7 ? 'Vlak odjíždí za ' + minutyText(mins) + ', nejvyšší čas vyrazit.' : null);
+          showToast('Vlak ' + hm(t.predShow) + ' za ' + minutyText(mins) + (T === 7 ? ' – vyraž!' : ''), T === 7 ? 'bad' : 'warn');
+          break;
+        }
       }
     }
+    if (changed) saveWatch();
   }
   var toastTimer = null;
   function showToast(text, cls) {
@@ -1064,23 +1097,27 @@
   }
   function rideButton(t) {
     if (!t.id || t.canceled) return '';
-    var on = !!(watch && watch.id === t.id), sub;
+    var on = !!watchOf(t), sub;
     if (on) {
       var at = nextStageAt(t);
       sub = audioLocked() ? '<span class="lock">zvuk zablokován – klepni kamkoli na displej</span>' :
         (at > Date.now() ? 'upozorním v ' + hm(at) : 'hlídám odjezd') + ' · klepnutím zrušíš';
     } else sub = 'zvukem upozorním 15, 10 a 7 min předem';
-    return '<a class="ride' + (on ? ' on' : '') + '" data-id="' + esc(t.id) + '">' + ALARM_SVG +
-      (on ? 'Tím jedu' : 'Tím jedu') + '<span class="sub">' + sub + '</span></a>';
+    return '<a class="ride' + (on ? ' on' : '') + '" data-ride="' + esc(t.id) + '">' + ALARM_SVG +
+      'Tím jedu<span class="sub">' + sub + '</span></a>';
+  }
+  // zvoneček u vlaku v seznamu
+  function bellButton(t) {
+    if (!t.id || t.canceled) return '';
+    return '<a class="bell' + (watchOf(t) ? ' on' : '') + '" data-ride="' + esc(t.id) + '">' + BELL_SVG + '</a>';
   }
   function rideFromEl(el) {
     while (el && el !== document) {
-      if (el.getAttribute && el.getAttribute('data-id') && String(el.className).indexOf('ride') >= 0) return el;
+      if (el.getAttribute && el.getAttribute('data-ride')) return el;
       el = el.parentNode;
     }
     return null;
   }
-
 
   // =====================================================================
   // ---------- KALENDÁŘ: dnešní den + odpočet do událostí ----------
@@ -1245,6 +1282,15 @@
     return m + ' minut';
   }
   var lastTrChip = '';
+  // u odpočtu nejbližšího vlaku připomeň i další hlídané vlaky (zvoneček + čas)
+  function otherWatched(first) {
+    var out = '';
+    for (var i = 0; i < watches.length; i++) {
+      var t = trainOf(watches[i]);
+      if (t && t !== first && !t.canceled) out += ' <span class="wb">' + BELL_SVG + hm(t.predShow) + '</span>';
+    }
+    return out;
+  }
   function renderTrainChip(force) {
     if (force) lastTrChip = '';
     var el = $('trchip');
@@ -1257,7 +1303,7 @@
       h = '<span class="go">›</span>' + (t.line ? '<span class="ln">' + esc(t.line) + '</span>' : '') +
         (m < 1 ? '<span class="big warn">Vlak odjíždí</span>' : 'Vlak za <span class="big num">' + minutyText(m) + '</span>') +
         ' · <span class="num ' + dc + '">' + hm(t.predShow) + (t.delayKnown && t.delayMin > 0 ? ' (+' + t.delayMin + ')' : '') + '</span>' +
-        (watch && watch.id === t.id ? (audioLocked() ? ALARM_SVG.replace('class="al"', 'class="al" style="color:#ff6b6b"') : ALARM_SVG) : '');
+        (watchOf(t) ? (audioLocked() ? ALARM_SVG.replace('class="al"', 'class="al" style="color:#ff6b6b"') : ALARM_SVG) : '') + otherWatched(t);
     }
     if (h !== lastTrChip) { el.innerHTML = h; el.style.display = h ? 'block' : 'none'; lastTrChip = h; }
   }
@@ -1268,7 +1314,7 @@
     $('clock').innerHTML = d.getHours() + ':' + pad(d.getMinutes()) + '<span class="sec">' + pad(d.getSeconds()) + '</span>';
     if (trains.length || lastErr) render();
     setStatus();
-    if (watch && audioLocked() && Math.floor(Date.now() / 1000) % 5 === 0) ensureAudio();
+    if (watches.length && audioLocked() && Math.floor(Date.now() / 1000) % 5 === 0) ensureAudio();
     checkWatch();
     renderTrainChip();
     wxTick();
@@ -1769,7 +1815,7 @@
     var sx = 0, sy = 0, dx = 0, dy = 0, mode = null, atTop = true, W = 0, ptr = $('ptr'), rideEl = null, ignoreClick = 0;
     document.addEventListener('touchstart', function (e) {
       lastTouch = Date.now(); touchActive = true;
-      if (watch && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
+      if (watches.length && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
       if ($('set').style.display === 'block' || (page === 2 && calEditing)) { mode = 'off'; return; }
       rideEl = rideFromEl(e.target);
       var t = e.touches[0];
@@ -1810,7 +1856,7 @@
       } else if (mode === null && !cancel && rideEl) {
         // klepnutí na „Tím jedu“ (tlačítko se každou sekundu překresluje, proto přes touchend)
         ignoreClick = Date.now() + 800;
-        toggleRide(rideEl.getAttribute('data-id'));
+        toggleRide(rideEl.getAttribute('data-ride'));
       }
       if (mode !== 'v' && ptr.style.height && ptr.style.height !== '0px' && ptr.innerHTML !== 'Obnovuji…') hidePtr();
       mode = null; dx = dy = 0; rideEl = null;
@@ -1818,10 +1864,10 @@
     document.addEventListener('touchend', function () { endTouch(false); }, { passive: true });
     document.addEventListener('touchcancel', function () { endTouch(true); }, { passive: true });
     document.addEventListener('click', function (e) {
-      if (watch && audioLocked()) unlockAudio();
+      if (watches.length && audioLocked()) unlockAudio();
       if (Date.now() < ignoreClick) return;
       var r = rideFromEl(e.target);
-      if (r) { if (e.preventDefault) e.preventDefault(); toggleRide(r.getAttribute('data-id')); }
+      if (r) { if (e.preventDefault) e.preventDefault(); toggleRide(r.getAttribute('data-ride')); }
     });
     $('toast').onclick = function () { $('toast').className = ''; };
     var ds = $('dots').getElementsByTagName('span');
@@ -1900,14 +1946,14 @@
   setupGestures();
   keepAwake();
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { keepAwake(); if (watch) ensureAudio(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
+    if (!document.hidden) { keepAwake(); if (watches.length) ensureAudio(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
   });
   document.addEventListener('click', keepAwake);
   // jednou za ~12 h celou stránku znovu načíst (prevence úniků paměti na starém telefonu)
-  function tryReload() { if (watch) setTimeout(tryReload, 5 * 60000); else location.reload(); }
+  function tryReload() { if (watches.length) setTimeout(tryReload, 5 * 60000); else location.reload(); }
   setTimeout(tryReload, 12 * 3600 * 1000);
   // hlídání přežije i obnovení stránky: hned zkusíme zvuk znovu odemknout
-  if (watch) ensureAudio();
+  if (watches.length) ensureAudio();
   tick();
   setInterval(tick, 1000);
   fetchData();
