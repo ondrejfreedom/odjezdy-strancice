@@ -2050,7 +2050,9 @@
     document.addEventListener('touchstart', function (e) {
       lastTouch = Date.now(); touchActive = true;
       if (watches.length && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
-      if ($('set').style.display === 'block' || (page === 2 && calEditing) || (page === 3 && (rhSetup || !rhConfigured()))) { mode = 'off'; return; }
+      // v nastavení a při psaní do políček se stránky nepřepínají; jinak swipe funguje všude
+      var tg = e.target && e.target.tagName;
+      if ($('set').style.display === 'block' || tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT' || tg === 'LABEL') { mode = 'off'; return; }
       rideEl = rideFromEl(e.target);
       var t = e.touches[0];
       sx = t.clientX; sy = t.clientY; dx = dy = 0; mode = null; W = pagerW();
