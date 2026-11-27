@@ -152,8 +152,8 @@
 
   /* ---------- stránkování (swipe) ---------- */
   #pager { overflow: hidden; touch-action: pan-y; -ms-touch-action: pan-y; }
-  #track { width: 300%; overflow: hidden; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
-  .page { float: left; width: 33.3333%; }
+  #track { width: 400%; overflow: hidden; -webkit-transform: translate3d(0,0,0); transform: translate3d(0,0,0); }
+  .page { float: left; width: 25%; }
   .page.off { height: 1px; overflow: hidden; visibility: hidden; }
   #dots { text-align: right; margin-top: 1.6vw; }
   #route.tap { display: inline-block; background: #12284d; border: 0.3vw solid #24467e; border-radius: 3vw; padding: 0.4vw 2.5vw; }
@@ -315,6 +315,49 @@
   .er .en small { display: block; font-size: 3.2vw; color: #7f9bc8; }
   .er .del { width: 22vw; text-align: center; font-size: 3.6vw; color: #ff8a8a; border: 0.3vw solid #6b2a35; border-radius: 2vw; padding: 1.6vw 0; text-decoration: none; cursor: pointer; }
   .er .del.sure { background: #6b2a35; color: #fff; }
+  /* ---- Rohlík ---- */
+  #rhchip { display: none; background: #0d2418; border: 0.4vw solid #2a6b45; border-radius: 3vw; padding: 1.8vw 3vw; margin: 0 0 3vw; font-size: 3.8vw; color: #b9e6c8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #rhchip b { color: #fff; margin-right: 1vw; }
+  #rhchip .rh-ic { font-size: 4.6vw; margin-right: 1.6vw; }
+  #rhchip .go { float: right; color: #5f9a76; margin-left: 2vw; }
+  #rhchip.go { border-color: #6ff0b9; }
+  #rhchip.here { background: #6ff0b9; color: #04261a; border-color: #6ff0b9; }
+  #rhchip.here b { color: #04261a; }
+  #rhchip.late { border-color: #ffc857; }
+  .rh-hero { text-align: center; border-radius: 5vw; border: 0.4vw solid #2a6b45; padding: 3.5vw 4vw 4vw;
+    background: #0d2418; background: -webkit-linear-gradient(top, #14402a, #0a1e14); background: linear-gradient(180deg, #14402a, #0a1e14); }
+  .rh-hero.go { border-color: #6ff0b9; }
+  .rh-hero.here { border-color: #6ff0b9; background: #145c3a; }
+  .rh-hero.late { border-color: #ffc857; }
+  .rh-logo { font-size: 12vw; line-height: 1.1; }
+  .rh-lbl { font-size: 4vw; color: #9fd8b4; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 1vw; }
+  .rh-big { font-size: 13vw; font-weight: 800; color: #fff; line-height: 1.1; letter-spacing: -0.02em; }
+  .rh-hero.none .rh-big { font-size: 9vw; }
+  .rh-eta { font-size: 5.4vw; color: #c9f0d6; margin-top: 1vw; }
+  .rh-eta b { font-size: 8vw; color: #6ff0b9; }
+  .rh-eta span { font-size: 3.4vw; color: #8fbf9f; }
+  .rh-slot { font-size: 4.6vw; color: #9fd8b4; margin-top: 1.5vw; }
+  .rh-sub { font-size: 4vw; color: #9fd8b4; margin-top: 2vw; line-height: 1.4; }
+  .rh-steps { display: table; width: 100%; table-layout: fixed; margin-top: 3vw; }
+  .rh-steps > div { display: table-cell; text-align: center; font-size: 3.2vw; color: #5f7f6c; position: relative; padding-top: 5vw; }
+  .rh-steps .d { position: absolute; top: 0; left: 50%; width: 3.6vw; height: 3.6vw; margin-left: -1.8vw; border-radius: 50%; background: #1f3a2b; border: 0.4vw solid #2a6b45; }
+  .rh-steps > div:before { content: ''; position: absolute; top: 1.6vw; left: 0; right: 0; height: 0.5vw; background: #1f3a2b; }
+  .rh-steps > div:first-child:before { left: 50%; }
+  .rh-steps > div:last-child:before { right: 50%; }
+  .rh-steps .done, .rh-steps .cur { color: #c9f0d6; }
+  .rh-steps .done .d { background: #2a8a63; border-color: #6ff0b9; }
+  .rh-steps .cur .d { background: #6ff0b9; border-color: #fff; box-shadow: 0 0 3vw rgba(111,240,185,0.7); }
+  .rh-steps .cur { font-weight: 800; color: #fff; }
+  .rh-steps .done:before { background: #2a8a63; }
+  .rh-steps .d { z-index: 1; }
+  .rh-card { background: #0b1a33; border: 0.4vw solid #24467e; border-radius: 4vw; padding: 3.5vw; }
+  .rh-h { font-size: 3.4vw; color: #6f8bb8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2vw; }
+  .rh-p { font-size: 3.6vw; color: #9fb6dc; line-height: 1.45; margin-bottom: 2vw; }
+  .rh-p code { color: #c9dafc; }
+  .rh-l { display: block; font-size: 3.6vw; color: #9fc2ff; margin: 2.5vw 0 1.2vw; }
+  .rh-card input { width: 100%; font-size: 4.4vw; padding: 2.4vw; border-radius: 2.5vw; border: 0.3vw solid #2a4a80; background: #071226; color: #fff; -webkit-user-select: text; user-select: text; font-family: inherit; }
+  .rh-lines { text-align: center; }
+  .rh-set { color: #6f8bb8; text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 2vw; }
   /* ---- Tím jedu ---- */
   .ride { display: block; margin: 3.5vw 0 0; text-align: center; font-size: 5.4vw; font-weight: 800; padding: 2.4vw 2vw 2vw; border-radius: 3.5vw;
     border: 0.4vw solid #2a5aa8; background: #10264a; color: #c9dafc; text-decoration: none; box-shadow: 0 1.1vw 0 #050c1a; cursor: pointer; }
@@ -387,19 +430,21 @@
     <div id="headR">
       <div id="route">Strančice → Praha</div>
       <div id="status" class="loading">načítám<span class="dot"></span></div>
-      <div id="dots"><span class="on"></span><span></span><span></span></div>
+      <div id="dots"><span class="on"></span><span></span><span></span><span></span></div>
     </div>
   </div>
   <div id="wxchip"></div>
+  <div id="rhchip"></div>
   <div id="ptr"></div>
   <div id="pager"><div id="track">
     <div class="page" id="p0">
       <div id="main"><div id="msg">Načítám odjezdy…</div></div>
       <div id="info"></div>
-      <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br>Přejeď doleva pro počasí a kalendář<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
+      <div id="foot">Data: PID / Golemio (zpoždění od Správy železnic)<br>Přejeď doleva pro počasí, kalendář a Rohlík<br><a id="fs" class="fbtn" href="#">Celá obrazovka</a><a id="gear" class="fbtn" href="#">Nastavení</a></div>
     </div>
     <div class="page off" id="p1"><div id="trchip"></div><div id="wx"><div id="msg">Načítám počasí…</div></div></div>
     <div class="page off" id="p2"><div id="cal"></div></div>
+    <div class="page off" id="p3"><div id="rh"></div></div>
   </div></div>
 </div>
 
@@ -449,8 +494,17 @@
     } catch (e) {}
     if (!S.token) S.token = DEFAULT_TOKEN;
     // token i přes URL: index.html?token=XXX (jednorázově se uloží)
-    var m = /[?&]token=([^&#]+)/.exec(location.search);
+    var q0 = location.search;
+    var m = /[?&]token=([^&#]+)/.exec(q0);
     if (m) { S.token = decodeURIComponent(m[1]); saveSettings(); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    // Rohlík i přes odkaz: ?rohlik=https://…vercel.app&rohlikKey=…
+    var m1 = /[?&]rohlik=([^&#]+)/.exec(q0), m2 = /[?&]rohlikKey=([^&#]+)/.exec(q0);
+    if (m1 || m2) {
+      if (m1) S.rhUrl = decodeURIComponent(m1[1]);
+      if (m2) S.rhKey = decodeURIComponent(m2[1]);
+      saveSettings();
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    }
   }
   function saveSettings() { try { window.localStorage.setItem('odjezdy.settings', JSON.stringify(S)); } catch (e) {} }
 
@@ -841,6 +895,11 @@
     var el = $('status');
     var now = Date.now();
     if (page === 2) { el.className = ''; el.innerHTML = 'dnes je ' + DNY[new Date(now).getDay()].toLowerCase() + '<span class="dot"></span>'; return; }
+    if (page === 3) {
+      el.className = RH.loading ? 'loading' : RH.err ? 'stale' : '';
+      el.innerHTML = esc(!rhConfigured() ? 'nenastaveno' : RH.loading ? 'načítám' : RH.at ? 'kontrola ' + ago(now - RH.at) : (RH.err || '—')) + '<span class="dot"></span>';
+      return;
+    }
     if (page === 1) {
       el.className = wxLoading ? 'loading' : (wxErr || (wxAt && now - wxAt > 40 * 60000)) ? 'stale' : '';
       el.innerHTML = esc(wxLoc === 'praha' ? 'zpět za ' + Math.max(0, Math.ceil((pragueUntil - now) / 1000)) + ' s' :
@@ -1274,6 +1333,175 @@
     }
   }
 
+
+  // =====================================================================
+  // ---------- ROHLÍK: kdy dorazí objednávka ----------
+  // =====================================================================
+  var RH = { data: null, at: 0, err: '', loading: false, nextAt: 0 };
+  var rhSetup = false, rhLastKey = '';
+  function rhConfigured() { return !!(S.rhUrl && S.rhKey); }
+  function rhEndpoint() {
+    var u = String(S.rhUrl || '').replace(/\/+$/, '');
+    if (!/\/api\/rohlik$/.test(u)) u += '/api/rohlik';
+    if (!/^https?:\/\//.test(u)) u = 'https://' + u;
+    return u + '?key=' + encodeURIComponent(S.rhKey || '');
+  }
+  function rhFirst() { var d = RH.data; return d && d.orders && d.orders.length ? d.orders[0] : null; }
+  function rhTrack() { var d = RH.data, o = rhFirst(); return d && d.tracking && o && d.tracking.orderId === o.id ? d.tracking : null; }
+  function rhEta() { var d = RH.data; return d && d.eta && d.eta.source === 'tracking' ? d.eta.eta : null; }
+
+  // jak často se ptát: bez objednávky 1× za hodinu, hodinu před oknem po 10 min,
+  // v okně po 3 min, když kurýr jede po 2 min
+  function rhInterval() {
+    if (RH.err) return 5 * 60000;
+    var o = rhFirst(), now = Date.now();
+    if (!o || !o.since) return 60 * 60000;
+    var tr = rhTrack(), st = tr && tr.status;
+    if (st === 'ON_THE_WAY' || st === 'ARRIVED' || st === 'HANDING_OVER') return 2 * 60000;
+    var till = o.till || o.since + 3600000, eta = rhEta();
+    if (eta && eta - now < 30 * 60000 && eta - now > -30 * 60000) return 3 * 60000;
+    if (now >= o.since && now <= till + 30 * 60000) return 3 * 60000;
+    if (now >= o.since - 60 * 60000 && now < o.since) return 10 * 60000;
+    if (now < o.since - 60 * 60000) return Math.max(60000, Math.min(60 * 60000, o.since - 60 * 60000 - now + 5000));
+    return 10 * 60000;   // okno už skončilo a objednávka pořád visí
+  }
+  function fetchRohlik() {
+    if (!rhConfigured() || RH.loading) return;
+    RH.loading = true;
+    xhrGet(rhEndpoint(), {}, function (st, txt) {
+      RH.loading = false;
+      var j = null;
+      try { j = JSON.parse(txt); } catch (e) {}
+      if (st === 200 && j && j.ok) { RH.data = j; RH.at = Date.now(); RH.err = ''; }
+      else RH.err = j && j.error ? j.error : st === 0 ? 'Rohlík: bez připojení' : 'Rohlík: chyba ' + st;
+      RH.nextAt = Date.now() + rhInterval();
+      renderRohlik(true); renderRhChip(true);
+    });
+  }
+  function rhTick() {
+    if (rhConfigured() && !RH.loading && Date.now() > RH.nextAt) fetchRohlik();
+    renderRhChip(false);
+    if (page === 3) renderRohlik(false);
+  }
+
+  // ---- texty ----
+  function dayWord(t) {
+    var n = dayDiff(new Date(), new Date(t));
+    if (n === 0) return 'dnes';
+    if (n === 1) return 'zítra';
+    if (n > 1 && n < 7) return DNY[new Date(t).getDay()].toLowerCase();
+    return new Date(t).getDate() + '. ' + (new Date(t).getMonth() + 1) + '.';
+  }
+  function durText(msLeft) {
+    var m = Math.floor(msLeft / 60000);
+    if (m < 1) return 'za chvíli';
+    if (m < 60) return 'za ' + minutyText(m);
+    var h = Math.floor(m / 60);
+    if (h >= 20) { var d = dayDiff(new Date(), new Date(Date.now() + msLeft)); if (d >= 1) return 'za ' + d + ' ' + dniText(d); }
+    return 'za ' + h + ' h ' + pad(m % 60) + ' min';
+  }
+  var RH_ST = { IN_QUEUE: 'připravuje se', ON_THE_WAY: 'kurýr je na cestě', ARRIVED: 'kurýr je na místě', HANDING_OVER: 'kurýr je u dveří', DELIVERED: 'doručeno' };
+  // jeden stav pro řádek i stránku
+  function rhState() {
+    var o = rhFirst();
+    if (!o) return null;
+    var now = Date.now(), tr = rhTrack(), st = tr && tr.status, eta = rhEta();
+    var since = o.since, till = o.till;
+    var s = { o: o, tr: tr, status: st, eta: eta, cls: '' };
+    s.slot = since ? dayWord(since) + ' ' + hm(since) + (till ? '–' + hm(till) : '') : 'bez času doručení';
+    if (st === 'ARRIVED' || st === 'HANDING_OVER') { s.big = 'Je tady!'; s.line = 'Rohlík je u dveří'; s.cls = 'here'; return s; }
+    if (eta && (st === 'ON_THE_WAY' || st === 'IN_QUEUE')) {
+      s.exact = true;
+      s.big = eta - now > 60000 ? durText(eta - now) : 'za chvíli';
+      s.line = 'v ' + hm(eta) + ' · ' + s.big + (st === 'ON_THE_WAY' ? ' · na cestě' : '');
+      s.cls = st === 'ON_THE_WAY' ? 'go' : '';
+      return s;
+    }
+    if (since && now < since) { s.big = durText(since - now); s.line = s.slot + ' · ' + s.big; return s; }
+    if (since && till && now <= till) { s.big = 'teď'; s.line = 'okno běží do ' + hm(till); s.cls = 'go'; return s; }
+    s.big = 'zpožďuje se'; s.line = s.slot + ' · zpožďuje se'; s.cls = 'late';
+    return s;
+  }
+
+  // ---- stavový řádek na odjezdech a počasí ----
+  var rhChipLast = '';
+  function renderRhChip(force) {
+    var el = $('rhchip');
+    if (!el) return;
+    var s = rhState(), h = '';
+    if (s && page < 2) h = '<span class="go">›</span><span class="rh-ic">🛒</span><b>Rohlík</b> ' + esc(s.line);
+    if (force || h !== rhChipLast) {
+      el.innerHTML = h; el.style.display = h ? 'block' : 'none';
+      el.className = s ? s.cls : '';
+      rhChipLast = h;
+    }
+  }
+
+  // ---- stránka s detailem ----
+  function renderRohlik(force) {
+    var box = $('rh');
+    if (!box) return;
+    var now = Date.now();
+    var key = Math.floor(now / 30000) + '|' + RH.at + '|' + RH.err + '|' + rhSetup + '|' + rhConfigured() + '|' + RH.loading;
+    if (!force && key === rhLastKey) return;
+    rhLastKey = key;
+    var h = '', i;
+    if (!rhConfigured() || rhSetup) {
+      h += '<div class="rh-card"><div class="rh-h">Připojení k Rohlíku</div>' +
+        '<p class="rh-p">Rohlík nejde číst přímo z prohlížeče, proto stránka volá tvou malou funkci na Vercelu (<code>api/rohlik.js</code> v repozitáři). ' +
+        'Přihlašovací údaje k Rohlíku jsou uložené jen tam.</p>' +
+        '<label class="rh-l">Adresa funkce</label><input id="rhUrl" type="text" placeholder="https://tvuj-projekt.vercel.app" value="' + esc(S.rhUrl || '') + '">' +
+        '<label class="rh-l">Klíč (ROHLIK_KEY)</label><input id="rhKey" type="text" placeholder="tajný klíč" value="' + esc(S.rhKey || '') + '">' +
+        '<a class="cal-btn add" id="rhSave">Uložit a vyzkoušet</a>' + (rhConfigured() ? '<a class="cal-btn sec" id="rhCancel">Zpět</a>' : '') + '</div>';
+      box.innerHTML = h;
+      $('rhSave').onclick = function () {
+        S.rhUrl = ($('rhUrl').value || '').replace(/\s/g, ''); S.rhKey = ($('rhKey').value || '').replace(/\s/g, '');
+        saveSettings(); rhSetup = false; RH.data = null; RH.err = ''; RH.nextAt = 0;
+        renderRohlik(true); fetchRohlik();
+      };
+      if ($('rhCancel')) $('rhCancel').onclick = function () { rhSetup = false; renderRohlik(true); };
+      return;
+    }
+    var s = rhState();
+    if (!RH.at && !RH.err) h += '<div id="msg">Zjišťuji objednávky…</div>';
+    else if (RH.err && !RH.data) h += '<div class="rh-card"><div class="rh-h">Rohlík se nepodařilo načíst</div><p class="rh-p bad">' + esc(RH.err) + '</p></div>';
+    else if (!s) {
+      h += '<div class="rh-hero none"><div class="rh-logo">🛒</div><div class="rh-big">Žádná objednávka</div><div class="rh-sub">Nic není na cestě. Zkontroluji znovu ' +
+        (RH.nextAt > now ? 'v ' + hm(RH.nextAt) : 'za chvíli') + '.</div></div>';
+    } else {
+      var o = s.o, tr = s.tr;
+      h += '<div class="rh-hero ' + s.cls + '"><div class="rh-logo">🛒</div>' +
+        '<div class="rh-lbl">' + (s.exact ? 'Kurýr dorazí' : s.cls === 'here' ? '' : o.since && now < o.since ? 'Okno doručení začíná' : 'Doručení') + '</div>' +
+        '<div class="rh-big num">' + esc(s.big) + '</div>' +
+        (s.exact ? '<div class="rh-eta">v <b class="num">' + hm(s.eta) + '</b>' + (RH.data.eta && RH.data.eta.capped ? ' <span>(nejdřív na začátku okna)</span>' : '') + '</div>' : '') +
+        '<div class="rh-slot">' + esc(o.since ? (dayWord(o.since) + ' ' + hm(o.since) + (o.till ? '–' + hm(o.till) : '')) : '') + '</div></div>';
+      // postup doručení
+      var steps = [['ORDERED', 'Objednáno'], ['IN_QUEUE', 'Chystá se'], ['ON_THE_WAY', 'Na cestě'], ['HERE', 'U dveří']];
+      var cur = !tr || !tr.status ? 0 : tr.status === 'IN_QUEUE' ? 1 : tr.status === 'ON_THE_WAY' ? 2 : 3;
+      h += '<div class="rh-steps">';
+      for (i = 0; i < steps.length; i++) h += '<div class="' + (i < cur ? 'done' : i === cur ? 'cur' : '') + '"><span class="d"></span>' + steps[i][1] + '</div>';
+      h += '</div>';
+      var lines = [];
+      if (tr && tr.stopsBefore != null && tr.status === 'ON_THE_WAY') lines.push('Před tebou ' + (tr.stopsBefore === 0 ? '<b>už žádná zastávka</b>' : '<b class="num">' + tr.stopsBefore + '</b> ' + (tr.stopsBefore === 1 ? 'zastávka' : tr.stopsBefore <= 4 ? 'zastávky' : 'zastávek')));
+      if (tr && tr.courier && tr.status && tr.status !== 'IN_QUEUE') lines.push('Kurýr: <b>' + esc(tr.courier) + '</b>');
+      if (tr && tr.earlyRequested && tr.earlyFrom) lines.push('Dřívější doručení povoleno od ' + hm(tr.earlyFrom));
+      if (o.items != null || o.total != null) lines.push((o.items != null ? o.items + ' ' + (o.items === 1 ? 'položka' : o.items <= 4 ? 'položky' : 'položek') : '') +
+        (o.total != null ? ' · ' + String(Math.round(o.total)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ' + (o.currency === 'CZK' || !o.currency ? 'Kč' : esc(o.currency)) : ''));
+      if (o.orderTime) lines.push('Objednáno ' + dayWord(o.orderTime) + ' v ' + hm(o.orderTime));
+      if (lines.length) h += '<div class="wx-line rh-lines">' + lines.join('<br>') + '</div>';
+      // další objednávky
+      var more = RH.data.orders.slice(1);
+      if (more.length) {
+        h += '<div class="rh-h" style="margin-top:4vw">Další objednávky</div>';
+        for (i = 0; i < more.length; i++) h += '<div class="ce"><div class="ci">🛒</div><div class="cn"><div class="t">' + esc(more[i].since ? dayWord(more[i].since) + ' ' + hm(more[i].since) + (more[i].till ? '–' + hm(more[i].till) : '') : 'bez času') + '</div><div class="s">' + (more[i].items != null ? more[i].items + ' položek' : '') + '</div></div><div class="cc"><span class="b num" style="font-size:6vw">' + (more[i].since ? esc(durText(more[i].since - now).replace('za ', '')) : '') + '</span></div></div>';
+      }
+    }
+    h += '<div class="wx-foot">' + (RH.loading ? 'načítám…' : RH.at ? 'Zkontrolováno ' + ago(now - RH.at) + (RH.nextAt > now ? ' · další kontrola v ' + hm(RH.nextAt) : '') : '') +
+      (RH.err && RH.data ? '<br><span class="bad">' + esc(RH.err) + '</span>' : '') + '<br><a class="rh-set" id="rhSetBtn">Nastavení připojení</a></div>';
+    box.innerHTML = h;
+    $('rhSetBtn').onclick = function () { rhSetup = true; renderRohlik(true); };
+  }
+
   // ---------- odpočet nejbližšího vlaku na stránce počasí ----------
   function minutyText(m) {
     if (m >= 60) return Math.floor(m / 60) + ' h ' + pad(m % 60) + ' min';
@@ -1319,6 +1547,7 @@
     renderTrainChip();
     wxTick();
     if (page === 2) renderCal(false);
+    rhTick();
     ptrWatchdog();
     // když hlavní vlak odjel, hned si řekneme o čerstvá data
     if (watchUntil && Date.now() > watchUntil && !loading) { watchUntil = 0; refreshNow(); return; }
@@ -1769,7 +1998,7 @@
     tr.webkitTransform = tf; tr.transform = tf;
   }
   var pageTimer = null;
-  var NPAGES = 3;
+  var NPAGES = 4;
   function showBoth() { for (var i = 0; i < NPAGES; i++) $('p' + i).className = 'page'; }
   function goPage(p) {
     var changed = p !== page;
@@ -1782,6 +2011,8 @@
     for (var di = 0; di < ds.length; di++) ds[di].className = di === p ? 'on' : '';
     if (p !== 1 && wxLoc !== 'home') { wxLoc = 'home'; syncWx(); wxSceneKey = ''; }
     if (p === 2) renderCal(true);
+    if (p === 3) { renderRohlik(true); if (rhConfigured() && Date.now() - RH.at > 3 * 60000) fetchRohlik(); }
+    renderRhChip(true);
     updateRoute();
     renderChip();
     if (changed) { try { window.scrollTo(0, 0); } catch (e) {} }
@@ -1791,7 +2022,10 @@
 
   function updateRoute() {
     var r = $('route');
-    if (page === 2) {
+    if (page === 3) {
+      r.className = '';
+      r.innerHTML = 'Rohlík';
+    } else if (page === 2) {
       r.className = '';
       r.innerHTML = 'Kalendář';
     } else if (page === 1) {
@@ -1816,7 +2050,7 @@
     document.addEventListener('touchstart', function (e) {
       lastTouch = Date.now(); touchActive = true;
       if (watches.length && audioLocked()) unlockAudio();   // po obnovení stránky odemkne zvuk prvním dotykem
-      if ($('set').style.display === 'block' || (page === 2 && calEditing)) { mode = 'off'; return; }
+      if ($('set').style.display === 'block' || (page === 2 && calEditing) || (page === 3 && (rhSetup || !rhConfigured()))) { mode = 'off'; return; }
       rideEl = rideFromEl(e.target);
       var t = e.touches[0];
       sx = t.clientX; sy = t.clientY; dx = dy = 0; mode = null; W = pagerW();
@@ -1851,7 +2085,7 @@
         if (!cancel && dy > 120) {
           ptr.innerHTML = 'Obnovuji…';
           setTimeout(hidePtr, 600);
-          if (page === 1) fetchWx(wxLoc); else { refreshNow(); if (Date.now() - WXS.home.at > 5 * 60000) fetchWx(); }
+          if (page === 1) fetchWx(wxLoc); else if (page === 3) fetchRohlik(); else { refreshNow(); if (Date.now() - WXS.home.at > 5 * 60000) fetchWx(); }
         } else hidePtr();
       } else if (mode === null && !cancel && rideEl) {
         // klepnutí na „Tím jedu“ (tlačítko se každou sekundu překresluje, proto přes touchend)
@@ -1874,6 +2108,8 @@
     ds[0].onclick = function () { goPage(0); };
     ds[1].onclick = function () { goPage(1); };
     ds[2].onclick = function () { goPage(2); };
+    ds[3].onclick = function () { goPage(3); };
+    $('rhchip').onclick = function () { goPage(3); };
     $('wxchip').onclick = function () { goPage(1); };
     $('trchip').onclick = function () { goPage(0); };
     $('status').onclick = function () { if (page === 1) fetchWx(wxLoc); else refreshNow(); };
@@ -1946,7 +2182,7 @@
   setupGestures();
   keepAwake();
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) { keepAwake(); if (watches.length) ensureAudio(); refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
+    if (!document.hidden) { keepAwake(); if (watches.length) ensureAudio(); if (rhConfigured() && Date.now() - RH.at > 10 * 60000) RH.nextAt = 0; refreshNow(); if (Date.now() - WXS.home.at > 10 * 60000) fetchWx(); }
   });
   document.addEventListener('click', keepAwake);
   // jednou za ~12 h celou stránku znovu načíst (prevence úniků paměti na starém telefonu)

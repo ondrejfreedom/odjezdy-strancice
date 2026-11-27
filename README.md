@@ -27,6 +27,16 @@ Data z Open-Meteo (zdarma, bez klíče). Aktuální teplota a pocitová, animace
 ## Kalendář (třetí obrazovka)
 Den v týdnu, datum, příštích 7 dní a odpočet dní do nadcházejících událostí. Události (název, datum, ikona, volitelně „každý rok“) se přidávají tlačítkem „Upravit události“ přímo na obrazovce a ukládají se jen v daném telefonu.
 
+## Rohlík (čtvrtá obrazovka)
+Kdy dorazí nákup z Rohlik.cz: časové okno, po převzetí kurýrem přesný odhad příjezdu, počet zastávek před tebou. Na odjezdech a počasí je krátký zelený řádek, pokud je nějaká objednávka.
+
+Rohlík nejde číst přímo z prohlížeče, proto je potřeba malá funkce `api/rohlik.js` na Vercelu (zdarma):
+1. vercel.com → Add New → Project → importuj tento repozitář → Deploy.
+2. Settings → Environment Variables: `ROHLIK_EMAIL`, `ROHLIK_PASSWORD` (přihlášení k Rohlíku) a `ROHLIK_KEY` (libovolný tajný řetězec) → Redeploy.
+3. V aplikaci na obrazovce Rohlík vyplň adresu projektu (`https://…vercel.app`) a klíč, nebo otevři odkaz `…/odjezdy-strancice/?rohlik=https://…vercel.app&rohlikKey=KLÍČ`.
+
+Dotazování: bez objednávky 1× za hodinu, hodinu před oknem po 10 min, v okně po 3 min, když kurýr jede po 2 min. Funkce vrací jen časy a stav, žádnou adresu ani telefon. API Rohlíku je neoficiální (podle knihovny rohlik-api), může se kdykoli změnit.
+
 ## Ovládání
 - Samo se obnovuje: každých 30 s (méně než 10 min do odjezdu), každou minutu (10–30 min), každých 5 min (víc než 30 min). Když vlak odjede, data se obnoví hned.
 - Ruční obnovení: táhni stránku dolů, nebo klepni na „aktualizováno…“ vpravo nahoře.
