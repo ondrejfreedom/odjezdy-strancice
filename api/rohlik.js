@@ -39,8 +39,11 @@ async function login() {
   });
   let j = {};
   try { j = await r.json(); } catch (e) { /* nic */ }
-  if (j.status !== 200) {
-    const msg = j.status === 401 ? 'Rohlík odmítl přihlášení (zkontroluj e-mail a heslo)' : 'Přihlášení k Rohlíku selhalo (' + (j.status || r.status) + ')';
+  // Rohlík vrací při úspěchu status 200, někdy i 202 (Accepted)
+  const st = j.status !== undefined ? j.status : r.status;
+  if (st !== 200 && st !== 202) {
+    const detail = j.messages && j.messages[0] && j.messages[0].content ? ': ' + j.messages[0].content : '';
+    const msg = st === 401 || st === 403 ? 'Rohlík odmítl přihlášení (zkontroluj e-mail a heslo)' + detail : 'Přihlášení k Rohlíku selhalo (' + st + ')' + detail;
     throw Object.assign(new Error(msg), { code: 502 });
   }
   session = { cookie: cookiesFrom(r), at: Date.now() };
